@@ -22,6 +22,7 @@
 		9320A86F18AC12C800BBF1FB /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9320A84E18AC12C800BBF1FB /* UIKit.framework */; };
 		9320A87718AC12C800BBF1FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9320A87518AC12C800BBF1FB /* InfoPlist.strings */; };
 		9320A87918AC12C800BBF1FB /* CirculateTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9320A87818AC12C800BBF1FB /* CirculateTests.m */; };
+		9320A88418AC13A000BBF1FB /* JSKCirculatoryView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9320A88318AC13A000BBF1FB /* JSKCirculatoryView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,8 @@
 		9320A87418AC12C800BBF1FB /* CirculateTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CirculateTests-Info.plist"; sourceTree = "<group>"; };
 		9320A87618AC12C800BBF1FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		9320A87818AC12C800BBF1FB /* CirculateTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CirculateTests.m; sourceTree = "<group>"; };
+		9320A88218AC13A000BBF1FB /* JSKCirculatoryView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSKCirculatoryView.h; sourceTree = "<group>"; };
+		9320A88318AC13A000BBF1FB /* JSKCirculatoryView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSKCirculatoryView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +125,8 @@
 				9320A86318AC12C800BBF1FB /* JSKViewController.m */,
 				9320A86518AC12C800BBF1FB /* Images.xcassets */,
 				9320A85118AC12C800BBF1FB /* Supporting Files */,
+				9320A88218AC13A000BBF1FB /* JSKCirculatoryView.h */,
+				9320A88318AC13A000BBF1FB /* JSKCirculatoryView.m */,
 			);
 			path = Circulate;
 			sourceTree = "<group>";
@@ -257,6 +262,7 @@
 				9320A85718AC12C800BBF1FB /* main.m in Sources */,
 				9320A86418AC12C800BBF1FB /* JSKViewController.m in Sources */,
 				9320A85B18AC12C800BBF1FB /* JSKAppDelegate.m in Sources */,
+				9320A88418AC13A000BBF1FB /* JSKCirculatoryView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
