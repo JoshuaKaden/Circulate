@@ -24,12 +24,14 @@ CGFloat const kPhone5Height = 568.0;
 CGFloat const kPadWidth = 664.0;
 CGFloat const kPadHeight = 920.0;
 
+CGFloat const kWallThickness = 1.0;
+CGFloat const kBuffer = 20.0;
+
+CGFloat const kVesselDiameter = 4.0;
 CGFloat const kSystemHeight = 84.0;
 CGFloat const kSystemWidth = 150.0;
-CGFloat const kVesselDiameter = 18.0;
-CGFloat const kWallThickness = 2.0;
-CGFloat const kBuffer = 20.0;
 CGFloat const kSystemOriginX = (kWallThickness + kVesselDiameter + kWallThickness + kBuffer) * 2;
+CGFloat const kSystemTwinWidth = (kSystemWidth / 2.0) - kBuffer;
 
 typedef enum {
     JSKSystemHeart,
@@ -67,7 +69,10 @@ typedef enum {
     JSKSystem_MaxValue
 } JSKSystem;
 
-@interface JSKCirculatoryView ()
+@interface JSKCirculatoryView () {
+    NSUInteger _pulmonaryArteryPointCount;
+    BOOL _isDrawing;
+}
 
 @property (nonatomic, assign) NSUInteger pointCount;
 @property (nonatomic, assign) NSUInteger currentPointIndex;
@@ -80,9 +85,7 @@ typedef enum {
 
 @end
 
-@implementation JSKCirculatoryView {
-    NSUInteger _pulmonaryArteryPointCount;
-}
+@implementation JSKCirculatoryView
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -98,22 +101,31 @@ typedef enum {
 - (void)drawRect:(CGRect)rect
 {
     // Drawing code
-    
+
     if (self.pointIndex == 0)
         return;
+
+    if (_isDrawing)
+        return;
+    _isDrawing = YES;
     
     CGContextRef t_context = UIGraphicsGetCurrentContext();
     [self drawRect:rect system:JSKSystemHeart context:t_context];
     [self drawRect:rect system:JSKSystemPulmonaryArtery context:t_context];
+    [self drawRect:rect system:JSKSystemLeftLung context:t_context];
     
     
     self.currentPointIndex = 0;
+    _isDrawing = NO;
     
     return;
 }
 
 - (void)drawRect:(CGRect)rect system:(JSKSystem)system context:(CGContextRef)context
 {
+    if (self.currentPointIndex >= self.pointIndex)
+        return;
+    
     CGContextRef t_context = context;
     CGFloat t_trim = self.pointIndex - self.currentPointIndex;
     
@@ -132,8 +144,9 @@ typedef enum {
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, kSystemWidth, kSystemHeight);
-            if ((self.currentPointIndex + kSystemWidth) > self.pointIndex)
+            CGFloat t_delta = [self pointCountForSystem:system];
+            CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, kSystemHeight);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex)
                 t_frame.size.width = t_trim;
             
             CGPathAddRect(pathRef, nil, t_frame);
@@ -151,7 +164,7 @@ typedef enum {
             
         case JSKSystemPulmonaryArtery: {
             CGFloat t_borderWidth = kVesselDiameter;
-            UIColor *t_borderColor = [UIColor whiteColor];
+            UIColor *t_borderColor = [UIColor colorWithRed:0.0 green:0. blue:0.8 alpha:0.5];
             
             CGContextSetLineWidth(t_context, t_borderWidth);
             CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
@@ -163,47 +176,56 @@ typedef enum {
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGPoint t_point = CGPointMake(t_lastPoint.x - kBuffer, t_lastPoint.y);
-            t_pointCount += kBuffer;
-            if (self.currentPointIndex + t_pointCount > self.pointIndex) {
+            CGFloat t_delta = kVesselDiameter + kBuffer;
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
                 t_shouldDraw = NO;
                 t_point.x = t_lastPoint.x - t_trim;
             }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
             t_lastPoint = t_point;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                CGFloat t_delta = kBuffer + kWallThickness + kVesselDiameter + kWallThickness + kBuffer + kSystemHeight + kBuffer;
+                t_delta = kBuffer + kWallThickness + kVesselDiameter + kWallThickness + kBuffer + kSystemHeight + kBuffer;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
                 t_pointCount += t_delta;
-                if (self.currentPointIndex + t_pointCount > self.pointIndex) {
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
                     t_point.y = t_lastPoint.y - t_trim;
                 }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
                 t_lastPoint = t_point;
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
             
             if (t_shouldDraw) {
-                CGFloat t_delta = kVesselDiameter + kBuffer;
-                t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
+                t_delta = kVesselDiameter + kBuffer;
+                CGPoint t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
-                if (self.currentPointIndex + t_pointCount > self.pointIndex) {
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
-                    t_point.x = t_lastPoint.x + t_trim;
+                    t_point = CGPointMake(t_lastPoint.x + t_trim, t_lastPoint.y);
                 }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
                 t_lastPoint = t_point;
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
             
             if (t_shouldDraw) {
-                CGFloat t_delta = kBuffer;
+                t_delta = kBuffer;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
-                if (self.currentPointIndex + t_pointCount > self.pointIndex) {
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
                     t_point.y = t_lastPoint.y + t_trim;
                 }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
                 t_lastPoint = t_point;
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
@@ -212,12 +234,39 @@ typedef enum {
             CGContextStrokePath(t_context);
             
             CGPathRelease(pathRef);
-            self.currentPointIndex += t_pointCount;
             break;
         }
             
-        case JSKSystemLeftLung:
+        case JSKSystemLeftLung: {
+            CGFloat t_borderWidth = kWallThickness;
+            UIColor *t_borderColor = [UIColor lightGrayColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            
+            CGFloat t_delta = [self pointCountForSystem:system];
+            CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, kSystemHeight);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex)
+                t_frame.size.width = t_trim;
+            
+            CGPathAddRect(pathRef, nil, t_frame);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextFillPath(t_context);
+            
+            CGPathRelease(pathRef);
+            self.currentPointIndex += t_frame.size.width;
             break;
+        }
             
         case JSKSystemRightLung:
             break;
@@ -430,6 +479,7 @@ typedef enum {
             break;
             
         case JSKSystemLeftLung:
+            t_return = kSystemTwinWidth;
             break;
             
         case JSKSystemRightLung:
@@ -541,6 +591,9 @@ typedef enum {
         }
             
         case JSKSystemLeftLung: {
+            CGPoint t_heartPoint = [self originForSystem:JSKSystemHeart];
+            CGFloat t_delta = (kBuffer + kWallThickness + kVesselDiameter + kWallThickness + kBuffer) + kSystemHeight;
+            t_return = CGPointMake(t_heartPoint.x, t_heartPoint.y - t_delta);
             break;
         }
             
