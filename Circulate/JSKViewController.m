@@ -115,20 +115,19 @@ CGFloat const kDrawSpeed = 0.008;
 {
     _startButton.enabled = NO;
     
-    _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:YES];
+    _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
 }
 
 - (void)timerFired:(id)sender
 {
-    if (_circulatoryView.pointIndex == _circulatoryView.pointCount - 1) {
-        [_timer invalidate];
-        return;
-    }
+    [_timer invalidate];
+    _timer = nil;
     
     [UIView animateWithDuration:kAnimationSpeed animations:^{
         _circulatoryView.pointIndex++;
     } completion:^(BOOL finished){
-        
+        if (_circulatoryView.pointIndex <= _circulatoryView.pointCount)
+            _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
     }];
 }
 
