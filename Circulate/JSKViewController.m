@@ -64,7 +64,7 @@ CGFloat const kDrawSpeed = 0.008;
     _circulatoryView = ({
         JSKCirculatoryView *t_view = [[JSKCirculatoryView alloc] initWithFrame:_boundingView.bounds];
         t_view.backgroundColor = _boundingView.backgroundColor;
-        t_view.pointIndex = 0.0;
+//        t_view.pointIndex = 0.0;
         [_boundingView addSubview:t_view];
         t_view;
     });
@@ -77,7 +77,7 @@ CGFloat const kDrawSpeed = 0.008;
         t_button;
     });
     
-    [self animateForLoad];
+//    [self animateForLoad];
 }
 
 - (void)didReceiveMemoryWarning

@@ -8,6 +8,42 @@
 
 #import <UIKit/UIKit.h>
 
+typedef enum {
+    JSKSystemHeart,
+    JSKSystemPulmonaryArtery,
+    JSKSystemLeftLung,
+    JSKSystemRightLung,
+    JSKSystemPulmonaryVein,
+    JSKSystemAorta,
+    JSKSystemCarotidArteries,
+    JSKSystemHead,
+    JSKSystemJugularVeins,
+    JSKSystemSuperiorVenaCava,
+    JSKSystemSubclavianArteries,
+    JSKSystemRightArm,
+    JSKSystemLeftArm,
+    JSKSystemSubclavianVeins,
+    JSKSystemCeliacArtery,
+    JSKSystemGut,
+    JSKSystemHepaticPortalVein,
+    JSKSystemHepaticArtery,
+    JSKSystemLiver,
+    JSKSystemHepaticVeins,
+    JSKSystemInferiorVenaCava,
+    JSKSystemRenalArteries,
+    JSKSystemRightKidney,
+    JSKSystemLeftKidney,
+    JSKSystemRenalVeins,
+    JSKSystemTesticularisArteries,
+    JSKSystemLowerBody,
+    JSKSystemTesticularisVeins,
+    JSKSystemIliacArtieries,
+    JSKSystemRightLeg,
+    JSKSystemLeftLeg,
+    JSKSystemIliacVeins,
+    JSKSystem_MaxValue
+} JSKSystem;
+
 @interface JSKCirculatoryView : UIView
 
 @property (readonly) NSUInteger pointCount;
