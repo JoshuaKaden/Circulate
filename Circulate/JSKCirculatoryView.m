@@ -24,6 +24,7 @@ CGFloat const kPhone5Height = 568.0;
 CGFloat const kPadWidth = 664.0;
 CGFloat const kPadHeight = 920.0;
 
+CGFloat const kPaddingX = 20.0;
 CGFloat const kWallThickness = 1.0;
 CGFloat const kBuffer = 20.0;
 
@@ -31,8 +32,9 @@ CGFloat const kVesselDiameter = 2.0;
 CGFloat const kVesselOffset = 0.0;
 CGFloat const kSystemHeight = 84.0;
 CGFloat const kSystemWidth = 150.0;
-CGFloat const kSystemOriginX = (kWallThickness + kVesselDiameter + kWallThickness + kBuffer) * 2;
+CGFloat const kSystemOriginX = kPaddingX + kVesselDiameter + kBuffer;
 CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
+CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
 
 @interface JSKCirculatoryView () {
     NSUInteger _pulmonaryArteryPointCount;
@@ -354,15 +356,131 @@ CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
             break;
         }
             
-        case JSKSystemAorta:
-            break;
+        case JSKSystemAorta: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = [UIColor colorWithRed:0.8 green:0.0 blue:0.0 alpha:0.5];
             
-        case JSKSystemCarotidArteries:
-            break;
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
             
-        case JSKSystemHead:
-            break;
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
             
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = kVesselDiameter + kBuffer + kBuffer;
+            CGPoint t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x + t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            if (t_shouldDraw) {
+                CGPoint t_origin = [self originForSystem:system];
+                CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
+                t_refPoint.x += (kSystemWidth + kVesselDiameter + kBuffer);
+                t_refPoint.y += (kSystemHeight);
+                
+                t_delta = t_origin.y - t_refPoint.y;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
+                CGPoint t_point2 = CGPointZero;
+                t_point2 = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    if (t_lastPoint.y > t_refPoint.y)
+                        t_point.y = t_lastPoint.y - t_trim;
+                    t_point2.y = t_lastPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y);
+                CGPathAddLineToPoint(pathRef, nil, t_point2.x, t_point2.y);
+                t_lastPoint = t_point;
+            }
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemCarotidArteries: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = [UIColor colorWithRed:0.8 green:0.0 blue:0.0 alpha:0.5];
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = (kVesselDiameter + kBuffer) * 2;
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemHead: {
+            CGFloat t_borderWidth = kWallThickness;
+            UIColor *t_borderColor = [UIColor lightGrayColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            t_origin.x += kSystemWidth;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            
+            CGFloat t_delta = [self pointCountForSystem:system];
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex) {
+                t_frame.origin.x = t_origin.x - t_trim;
+                t_frame.size.width = t_trim;
+            }
+            
+            CGPathAddRect(pathRef, nil, t_frame);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextFillPath(t_context);
+            
+            CGPathRelease(pathRef);
+            self.currentPointIndex += t_frame.size.width;
+            break;
+        }
+    
         case JSKSystemJugularVeins:
             break;
             
@@ -570,13 +688,26 @@ CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
             t_return = (kVesselDiameter + kBuffer) + (kBuffer + kSystemTwinWidth + kBuffer + kVesselDiameter) + (kBuffer + kVesselDiameter) + (kBuffer + kVesselDiameter) + (kBuffer + kVesselDiameter);
             break;
             
-        case JSKSystemAorta:
-            break;
+        case JSKSystemAorta: {
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
+            t_refPoint.x += (kSystemWidth + kVesselDiameter + kBuffer);
+            t_refPoint.y += kSystemHeight;
+            CGFloat t_toHead = t_origin.y - t_refPoint.y;
             
+            t_refPoint = [self originForSystem:JSKSystemRightLeg];
+            CGFloat t_toLegs = t_refPoint.y - t_origin.y;
+            
+            t_return = (kVesselDiameter + kBuffer + kBuffer) + t_toHead + t_toLegs;
+            break;
+        }
+        
         case JSKSystemCarotidArteries:
+            t_return = (kVesselDiameter + kBuffer) * 2;
             break;
             
         case JSKSystemHead:
+            t_return = kSystemWidth;
             break;
             
         case JSKSystemJugularVeins:
@@ -662,7 +793,8 @@ CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
     CGPoint t_return = CGPointZero;
     switch (system) {
         case JSKSystemHeart: {
-            CGFloat t_y = (kSystemHeight * 3) + ((kBuffer + kWallThickness + kVesselDiameter + kWallThickness + kBuffer) * 4);
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
+            CGFloat t_y = t_refPoint.y + (kSystemHeight * 3) + ((kBuffer + kVesselDiameter + kBuffer) * 3);
             t_return = CGPointMake(kSystemOriginX, t_y);
             break;
         }
@@ -676,15 +808,14 @@ CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
             
         case JSKSystemLeftLung: {
             CGPoint t_heartPoint = [self originForSystem:JSKSystemHeart];
-            CGFloat t_delta = (kBuffer + kWallThickness + kVesselDiameter + kWallThickness + kBuffer) + kSystemHeight;
+            CGFloat t_delta = (kBuffer + kVesselDiameter + kBuffer) + kSystemHeight;
             t_return = CGPointMake(t_heartPoint.x, t_heartPoint.y - t_delta);
             break;
         }
-            
+        
         case JSKSystemRightLung: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemLeftLung];
-            CGFloat t_delta = kSystemTwinWidth + kBuffer;
-            t_return = CGPointMake(t_refPoint.x + t_delta, t_refPoint.y);
+            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y);
             break;
         }
         
@@ -694,19 +825,28 @@ CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
             break;
         }
             
-        case JSKSystemAorta:
+        case JSKSystemAorta: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
+            t_return = CGPointMake(t_refPoint.x + kSystemWidth, t_refPoint.y + kSystemHeight);
             break;
-            
-        case JSKSystemCarotidArteries:
+        }
+        
+        case JSKSystemCarotidArteries: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
+            t_return = CGPointMake(t_refPoint.x + kSystemWidth + ((kVesselDiameter + kBuffer) * 2), t_refPoint.y + kSystemHeight);
             break;
-            
+        }
+    
         case JSKSystemHead:
+            t_return = CGPointMake(kSystemOriginX, kWallThickness);
             break;
             
         case JSKSystemJugularVeins:
+            t_return = CGPointMake(kSystemOriginX, kSystemHeight);
             break;
             
         case JSKSystemSuperiorVenaCava:
+            t_return = CGPointMake(kPaddingX, kSystemHeight);
             break;
             
         case JSKSystemSubclavianArteries:
@@ -766,8 +906,12 @@ CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
         case JSKSystemIliacArtieries:
             break;
             
-        case JSKSystemRightLeg:
+        case JSKSystemRightLeg: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
+            CGFloat t_deltaY = ((kSystemHeight + kBuffer) * 3) + kVesselDiameter + kBuffer;
+            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + t_deltaY);
             break;
+        }
             
         case JSKSystemLeftLeg:
             break;
@@ -785,38 +929,41 @@ CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
 {
     NSUInteger t_count = 0;
     
-    t_count += [self pointCountForSystem:JSKSystemHeart];
-    t_count += [self pointCountForSystem:JSKSystemPulmonaryArtery];
-    t_count += [self pointCountForSystem:JSKSystemLeftLung];
-    t_count += [self pointCountForSystem:JSKSystemRightLung];
-    t_count += [self pointCountForSystem:JSKSystemPulmonaryVein];
-    t_count += [self pointCountForSystem:JSKSystemAorta];
-    t_count += [self pointCountForSystem:JSKSystemCarotidArteries];
-    t_count += [self pointCountForSystem:JSKSystemHead];
-    t_count += [self pointCountForSystem:JSKSystemJugularVeins];
-    t_count += [self pointCountForSystem:JSKSystemSuperiorVenaCava];
-    t_count += [self pointCountForSystem:JSKSystemSubclavianArteries];
-    t_count += [self pointCountForSystem:JSKSystemRightArm];
-    t_count += [self pointCountForSystem:JSKSystemLeftArm];
-    t_count += [self pointCountForSystem:JSKSystemSubclavianVeins];
-    t_count += [self pointCountForSystem:JSKSystemCeliacArtery];
-    t_count += [self pointCountForSystem:JSKSystemGut];
-    t_count += [self pointCountForSystem:JSKSystemHepaticPortalVein];
-    t_count += [self pointCountForSystem:JSKSystemHepaticArtery];
-    t_count += [self pointCountForSystem:JSKSystemLiver];
-    t_count += [self pointCountForSystem:JSKSystemHepaticVeins];
-    t_count += [self pointCountForSystem:JSKSystemInferiorVenaCava];
-    t_count += [self pointCountForSystem:JSKSystemRenalArteries];
-    t_count += [self pointCountForSystem:JSKSystemRightKidney];
-    t_count += [self pointCountForSystem:JSKSystemLeftKidney];
-    t_count += [self pointCountForSystem:JSKSystemRenalVeins];
-    t_count += [self pointCountForSystem:JSKSystemTesticularisArteries];
-    t_count += [self pointCountForSystem:JSKSystemLowerBody];
-    t_count += [self pointCountForSystem:JSKSystemTesticularisVeins];
-    t_count += [self pointCountForSystem:JSKSystemIliacArtieries];
-    t_count += [self pointCountForSystem:JSKSystemRightLeg];
-    t_count += [self pointCountForSystem:JSKSystemLeftLeg];
-    t_count += [self pointCountForSystem:JSKSystemIliacVeins];
+    for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
+        t_count += [self pointCountForSystem:t_system];
+    
+//    t_count += [self pointCountForSystem:JSKSystemHeart];
+//    t_count += [self pointCountForSystem:JSKSystemPulmonaryArtery];
+//    t_count += [self pointCountForSystem:JSKSystemLeftLung];
+//    t_count += [self pointCountForSystem:JSKSystemRightLung];
+//    t_count += [self pointCountForSystem:JSKSystemPulmonaryVein];
+//    t_count += [self pointCountForSystem:JSKSystemAorta];
+//    t_count += [self pointCountForSystem:JSKSystemCarotidArteries];
+//    t_count += [self pointCountForSystem:JSKSystemHead];
+//    t_count += [self pointCountForSystem:JSKSystemJugularVeins];
+//    t_count += [self pointCountForSystem:JSKSystemSuperiorVenaCava];
+//    t_count += [self pointCountForSystem:JSKSystemSubclavianArteries];
+//    t_count += [self pointCountForSystem:JSKSystemRightArm];
+//    t_count += [self pointCountForSystem:JSKSystemLeftArm];
+//    t_count += [self pointCountForSystem:JSKSystemSubclavianVeins];
+//    t_count += [self pointCountForSystem:JSKSystemCeliacArtery];
+//    t_count += [self pointCountForSystem:JSKSystemGut];
+//    t_count += [self pointCountForSystem:JSKSystemHepaticPortalVein];
+//    t_count += [self pointCountForSystem:JSKSystemHepaticArtery];
+//    t_count += [self pointCountForSystem:JSKSystemLiver];
+//    t_count += [self pointCountForSystem:JSKSystemHepaticVeins];
+//    t_count += [self pointCountForSystem:JSKSystemInferiorVenaCava];
+//    t_count += [self pointCountForSystem:JSKSystemRenalArteries];
+//    t_count += [self pointCountForSystem:JSKSystemRightKidney];
+//    t_count += [self pointCountForSystem:JSKSystemLeftKidney];
+//    t_count += [self pointCountForSystem:JSKSystemRenalVeins];
+//    t_count += [self pointCountForSystem:JSKSystemTesticularisArteries];
+//    t_count += [self pointCountForSystem:JSKSystemLowerBody];
+//    t_count += [self pointCountForSystem:JSKSystemTesticularisVeins];
+//    t_count += [self pointCountForSystem:JSKSystemIliacArtieries];
+//    t_count += [self pointCountForSystem:JSKSystemRightLeg];
+//    t_count += [self pointCountForSystem:JSKSystemLeftLeg];
+//    t_count += [self pointCountForSystem:JSKSystemIliacVeins];
     
     return t_count;
 }

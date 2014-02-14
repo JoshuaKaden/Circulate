@@ -20,6 +20,8 @@ CGFloat const kDrawSpeed = 0.008;
     JSKCirculatoryView *_circulatoryView;
     UIButton *_startButton;
     NSTimer *_timer;
+    BOOL _isDrawing;
+    BOOL _shouldPause;
 }
 
 - (void)animateForLoad;
@@ -64,7 +66,7 @@ CGFloat const kDrawSpeed = 0.008;
     _circulatoryView = ({
         JSKCirculatoryView *t_view = [[JSKCirculatoryView alloc] initWithFrame:_boundingView.bounds];
         t_view.backgroundColor = _boundingView.backgroundColor;
-//        t_view.pointIndex = 0.0;
+        t_view.pointIndex = 0.0;
         [_boundingView addSubview:t_view];
         t_view;
     });
@@ -77,7 +79,7 @@ CGFloat const kDrawSpeed = 0.008;
         t_button;
     });
     
-//    [self animateForLoad];
+    [self animateForLoad];
 }
 
 - (void)didReceiveMemoryWarning
@@ -113,8 +115,15 @@ CGFloat const kDrawSpeed = 0.008;
 
 - (void)startButtonTapped:(id)sender
 {
-    _startButton.enabled = NO;
+    if (_isDrawing) {
+        _shouldPause = !_shouldPause;
+        if (_shouldPause)
+            return;
+    }
+    _isDrawing = YES;
     
+    if (_circulatoryView.pointIndex >= _circulatoryView.pointCount - 1)
+        _circulatoryView.pointIndex = 0;
     _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
 }
 
@@ -123,11 +132,16 @@ CGFloat const kDrawSpeed = 0.008;
     [_timer invalidate];
     _timer = nil;
     
+    if (_shouldPause)
+        return;
+    
     [UIView animateWithDuration:kAnimationSpeed animations:^{
         _circulatoryView.pointIndex++;
     } completion:^(BOOL finished){
         if (_circulatoryView.pointIndex <= _circulatoryView.pointCount)
             _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
+        else
+            _isDrawing = NO;
     }];
 }
 
