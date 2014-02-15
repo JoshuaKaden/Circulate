@@ -12,7 +12,7 @@
 CGFloat const kPadding = 47.0;
 CGFloat const kPaddingPhone = 10.0;
 CGFloat const kAnimationSpeed = 0.5;
-CGFloat const kDrawSpeed = 0.008;
+CGFloat const kDrawSpeed = 0.004;
 
 @interface JSKViewController () {
     UIView *_framingView;
