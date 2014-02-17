@@ -6,14 +6,6 @@
 //  Copyright (c) 2014 Chadford Software. All rights reserved.
 //
 
-//
-//  JSKCirculatoryView.m
-//  Circlulate
-//
-//  Created by Joshua Kaden on 2/12/14.
-//  Copyright (c) 2014 Chadford Software. All rights reserved.
-//
-
 #import "JSKCirculatoryView.h"
 
 NSUInteger const kSegmentCount = 8;
@@ -26,12 +18,12 @@ CGFloat const kPadHeight = 920.0;
 
 CGFloat const kPaddingX = 20.0;
 CGFloat const kWallThickness = 1.0;
-CGFloat const kBuffer = 20.0;
+CGFloat const kBuffer = 22.0;
 
 CGFloat const kVesselDiameter = 2.0;
 CGFloat const kVesselOffset = 0.0;
 CGFloat const kSystemHeight = 78.0;
-CGFloat const kSystemWidth = 150.0;
+CGFloat const kSystemWidth = 150.0 * 2;
 CGFloat const kSystemOriginX = kPaddingX + ((kVesselDiameter + kBuffer) * 2);
 CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
 CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
@@ -118,6 +110,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 t_frame.size.width = t_trim;
             
             CGPathAddRect(pathRef, nil, t_frame);
+            CGPathMoveToPoint(pathRef, nil, CGRectGetMidX(t_frame), t_frame.origin.y + kWallThickness);
+            CGPathAddLineToPoint(pathRef, nil, CGRectGetMidX(t_frame), t_frame.origin.y + t_frame.size.height - kWallThickness);
             
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
@@ -704,7 +698,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kBuffer + kSystemTwinWidth;
+                t_delta = t_lastPoint.x - kPaddingX;
                 t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -718,22 +712,58 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
 
             if (t_shouldDraw) {
+                CGPoint t_refPoint = [self originForSystem:JSKSystemLeftArm];
+                t_refPoint.y += kSystemHeight;
                 t_delta = kBuffer + kVesselDiameter;
-                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
+                t_point = CGPointMake(t_refPoint.x, t_refPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
-                    t_point.y = t_lastPoint.y - t_trim;
+                    t_point.y = t_refPoint.y + t_trim;
                 }
                 self.currentPointIndex += t_delta;
                 t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathMoveToPoint(pathRef, nil, t_refPoint.x, t_refPoint.y);
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
                 t_lastPoint = t_point;
             }
             
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemCeliacArtery: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _oxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = (kVesselDiameter + kBuffer + kVesselDiameter + kBuffer);
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
             if (t_shouldDraw) {
-                t_delta = (kVesselDiameter + kBuffer + kVesselDiameter + kBuffer);
-                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y);
+                t_delta = kBuffer;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
@@ -752,23 +782,214 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             break;
         }
             
-        case JSKSystemCeliacArtery:
-            break;
+        case JSKSystemGut: {
+            CGFloat t_borderWidth = kWallThickness;
+            UIColor *t_borderColor = [UIColor lightGrayColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
             
-        case JSKSystemGut:
-            break;
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
             
-        case JSKSystemHepaticPortalVein:
-            break;
+            CGPoint t_origin = [self originForSystem:system];
+            t_origin.x += kSystemTwinWidth;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-        case JSKSystemHepaticArtery:
-            break;
+            CGFloat t_delta = [self pointCountForSystem:system];
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex) {
+                t_frame.origin.x = t_origin.x - t_trim;
+                t_frame.size.width = t_trim;
+            }
             
-        case JSKSystemLiver:
-            break;
+            CGPathAddRect(pathRef, nil, t_frame);
             
-        case JSKSystemHepaticVeins:
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextFillPath(t_context);
+            
+            CGPathRelease(pathRef);
+            self.currentPointIndex += t_frame.size.width;
             break;
+        }
+            
+        case JSKSystemHepaticPortalVein: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _deoxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = kBuffer + kVesselDiameter;
+            CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.y = t_lastPoint.y + t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            if (t_shouldDraw) {
+                t_delta = kBuffer;
+                t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.x = t_lastPoint.x - t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            if (t_shouldDraw) {
+                t_delta = kBuffer;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_lastPoint.y - t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemHepaticArtery: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _oxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = kSystemTwinWidth + kBuffer;
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            if (t_shouldDraw) {
+                t_delta = kBuffer;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_lastPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                t_lastPoint = t_point;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            }
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemLiver: {
+            CGFloat t_borderWidth = kWallThickness;
+            UIColor *t_borderColor = [UIColor lightGrayColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            t_origin.x += kSystemTwinWidth;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            
+            CGFloat t_delta = [self pointCountForSystem:system];
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex) {
+                t_frame.origin.x = t_origin.x - t_trim;
+                t_frame.size.width = t_trim;
+            }
+            
+            CGPathAddRect(pathRef, nil, t_frame);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextFillPath(t_context);
+            
+            CGPathRelease(pathRef);
+            self.currentPointIndex += t_frame.size.width;
+            break;
+        }
+            
+        case JSKSystemHepaticVeins: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _deoxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = kSystemOriginX - kPaddingX;
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
             
         case JSKSystemInferiorVenaCava:
             break;
@@ -991,21 +1212,27 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             break;
             
         case JSKSystemCeliacArtery:
+            t_return = (kVesselDiameter + kBuffer + kVesselDiameter + kBuffer) + kBuffer;
             break;
             
         case JSKSystemGut:
+            t_return = kSystemTwinWidth;
             break;
             
         case JSKSystemHepaticPortalVein:
+            t_return = kBuffer * 3;
             break;
             
         case JSKSystemHepaticArtery:
+            t_return = (kBuffer + kSystemTwinWidth) + kBuffer;
             break;
             
         case JSKSystemLiver:
+            t_return = kSystemTwinWidth;
             break;
             
         case JSKSystemHepaticVeins:
+            t_return = kSystemOriginX - kPaddingX;
             break;
             
         case JSKSystemInferiorVenaCava:
@@ -1134,24 +1361,42 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             t_return = CGPointMake(t_refPoint.x, t_refPoint.y + kSystemHeight);
             break;
         }
-            
-        case JSKSystemCeliacArtery:
+        
+        case JSKSystemCeliacArtery: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
+            t_return = CGPointMake(t_refPoint.x + kSystemWidth + (kVesselDiameter + kBuffer) + kBuffer, t_refPoint.y + kSystemHeight + kBuffer + kVesselDiameter);
             break;
+        }
             
-        case JSKSystemGut:
+        case JSKSystemGut: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
+            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + kSystemHeight + kBuffer + kVesselDiameter + kBuffer);
             break;
+        }
+        
+        case JSKSystemHepaticPortalVein: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemGut];
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + kSystemHeight);
+            break;
+        }
             
-        case JSKSystemHepaticPortalVein:
+        case JSKSystemHepaticArtery: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemGut];
+            t_return = CGPointMake(t_refPoint.x + kSystemTwinWidth, t_refPoint.y - kBuffer);
             break;
+        }
             
-        case JSKSystemHepaticArtery:
+        case JSKSystemLiver: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemGut];
+            t_return = CGPointMake(kSystemOriginX, t_refPoint.y);
             break;
+        }
             
-        case JSKSystemLiver:
+        case JSKSystemHepaticVeins: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemLiver];
+            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + kSystemHeight);
             break;
-            
-        case JSKSystemHepaticVeins:
-            break;
+        }
             
         case JSKSystemInferiorVenaCava:
             break;
