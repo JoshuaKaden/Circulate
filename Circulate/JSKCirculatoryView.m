@@ -8,7 +8,7 @@
 
 #import "JSKCirculatoryView.h"
 
-NSUInteger const kSegmentCount = 8;
+NSUInteger const kSystemCount = 33;
 
 CGFloat const kPhoneWidth = 320.0;
 CGFloat const kPhoneHeight = 480.0;
@@ -33,6 +33,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     BOOL _isDrawing;
     UIColor *_oxygenatedColor;
     UIColor *_deoxygenatedColor;
+    NSMutableDictionary *_magicNumbers;
 }
 
 @property (nonatomic, assign) NSUInteger pointCount;
@@ -57,6 +58,10 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
         _pointIndex = self.pointCount;
         _oxygenatedColor = [UIColor colorWithRed:0.8 green:0.0 blue:0.0 alpha:0.5];
         _deoxygenatedColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.8 alpha:0.5];
+        
+        _magicNumbers = [[NSMutableDictionary alloc] init];
+        for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
+            [_magicNumbers setValue:@0 forKey:[NSString stringWithFormat:@"%02d", t_system]];
     }
     return self;
 }
@@ -68,15 +73,24 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     if (self.pointIndex == 0)
         return;
 
-    if (_isDrawing)
-        return;
-    _isDrawing = YES;
+//    if (_isDrawing)
+//        return;
+//    _isDrawing = YES;
     
     for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
         [self drawRect:rect system:t_system];
     
+    if (self.pointIndex == self.pointCount - 1) {
+        NSMutableArray *t_counts = [NSMutableArray array];
+        for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
+            [t_counts addObject:[_magicNumbers valueForKey:[NSString stringWithFormat:@"%02d", t_system]]];
+        
+        NSLog(@"%@", _magicNumbers);
+        NSLog(@"%@", [t_counts componentsJoinedByString:@","]);
+    }
+    
     self.currentPointIndex = 0;
-    _isDrawing = NO;
+//    _isDrawing = NO;
     
     return;
 }
@@ -88,6 +102,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     
     CGContextRef t_context = UIGraphicsGetCurrentContext();
     CGFloat t_trim = self.pointIndex - self.currentPointIndex;
+    
+    NSMutableDictionary *t_magicNumbers = _magicNumbers;
     
     switch (system) {
             
@@ -104,7 +120,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = [self pointCountForSystem:system];
+            CGFloat t_delta = kSystemWidth;
             CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, kSystemHeight);
             if ((self.currentPointIndex + t_delta) > self.pointIndex)
                 t_frame.size.width = t_trim;
@@ -120,7 +136,9 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextFillPath(t_context);
             
             CGPathRelease(pathRef);
-            self.currentPointIndex += t_frame.size.width;
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+//            [t_magicNumbers insertObject:[NSNumber numberWithUnsignedInteger:t_delta] atIndex:system];
+            self.currentPointIndex += t_delta;
             break;
         }
             
@@ -223,6 +241,9 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+//            [t_magicNumbers insertObject:[NSNumber numberWithUnsignedInteger:t_pointCount] atIndex:system];
+            
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -244,7 +265,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = [self pointCountForSystem:system];
+            CGFloat t_delta = kSystemTwinWidth;
             CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, kSystemHeight);
             if ((self.currentPointIndex + t_delta) > self.pointIndex)
                 t_frame.size.width = t_trim;
@@ -258,7 +279,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextFillPath(t_context);
             
             CGPathRelease(pathRef);
-            self.currentPointIndex += t_frame.size.width;
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
             break;
         }
         
@@ -347,6 +369,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 t_lastPoint = t_point;
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -405,6 +429,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 t_lastPoint = t_point;
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -438,6 +464,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             t_lastPoint = t_point;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -459,7 +487,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = [self pointCountForSystem:system];
+            CGFloat t_delta = kSystemWidth;
             CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
@@ -475,7 +503,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextFillPath(t_context);
             
             CGPathRelease(pathRef);
-            self.currentPointIndex += t_frame.size.width;
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
             break;
         }
     
@@ -505,6 +534,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             t_lastPoint = t_point;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -553,6 +584,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 t_lastPoint = t_point;
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -629,6 +662,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -651,7 +686,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = [self pointCountForSystem:system];
+            CGFloat t_delta = kSystemTwinWidth;
             CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
@@ -667,7 +702,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextFillPath(t_context);
             
             CGPathRelease(pathRef);
-            self.currentPointIndex += t_frame.size.width;
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
             break;
         }
             
@@ -728,6 +764,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 t_lastPoint = t_point;
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -775,6 +813,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -796,7 +836,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = [self pointCountForSystem:system];
+            CGFloat t_delta = kSystemTwinWidth;
             CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
@@ -812,7 +852,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextFillPath(t_context);
             
             CGPathRelease(pathRef);
-            self.currentPointIndex += t_frame.size.width;
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
             break;
         }
             
@@ -870,6 +911,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 t_lastPoint = t_point;
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -917,6 +960,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -938,7 +983,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = [self pointCountForSystem:system];
+            CGFloat t_delta = kSystemTwinWidth;
             CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
@@ -954,7 +999,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextFillPath(t_context);
             
             CGPathRelease(pathRef);
-            self.currentPointIndex += t_frame.size.width;
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
             break;
         }
             
@@ -984,6 +1030,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             t_lastPoint = t_point;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
             
@@ -1141,139 +1189,13 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
 - (NSUInteger)pointCountForSystem:(JSKSystem)system
 {
     NSUInteger t_return = 0;
-    switch (system) {
-        case JSKSystemHeart:
-            t_return = kSystemWidth;
-            break;
-            
-        case JSKSystemPulmonaryArtery:
-            t_return = (kVesselDiameter + kBuffer) + (kBuffer + kWallThickness + kVesselDiameter + kWallThickness + kBuffer + kSystemHeight + kBuffer) + (kVesselDiameter + kBuffer) + (kBuffer) + (kSystemTwinWidth + kBuffer) + (kBuffer);
-            break;
-            
-        case JSKSystemLeftLung:
-            t_return = kSystemTwinWidth;
-            break;
-            
-        case JSKSystemRightLung:
-            t_return = kSystemTwinWidth;
-            break;
-            
-        case JSKSystemPulmonaryVein:
-            t_return = (kVesselDiameter + kBuffer) + (kBuffer + kSystemTwinWidth + kBuffer + kVesselDiameter) + (kBuffer + kVesselDiameter) + (kBuffer + kVesselDiameter) + (kBuffer + kVesselDiameter);
-            break;
-            
-        case JSKSystemAorta: {
-            CGPoint t_origin = [self originForSystem:system];
-            CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_refPoint.x += (kSystemWidth + kVesselDiameter + kBuffer);
-            t_refPoint.y += kSystemHeight;
-            CGFloat t_toHead = t_origin.y - t_refPoint.y;
-            
-            t_refPoint = [self originForSystem:JSKSystemRightLeg];
-            CGFloat t_toLegs = t_refPoint.y - t_origin.y;
-            
-            t_return = (kVesselDiameter + kBuffer + kBuffer) + t_toHead + t_toLegs;
-            break;
-        }
-        
-        case JSKSystemCarotidArteries:
-            t_return = (kVesselDiameter + kBuffer) * 2;
-            break;
-            
-        case JSKSystemHead:
-            t_return = kSystemWidth;
-            break;
-            
-        case JSKSystemJugularVeins:
-            t_return = (kVesselDiameter + kBuffer) * 2;
-            break;
-            
-        case JSKSystemSuperiorVenaCava: {
-            CGPoint t_origin = [self originForSystem:system];
-            CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            t_return = ((t_refPoint.y + kSystemHeight) - t_origin.y) + (kVesselDiameter + kBuffer);
-            break;
-        }
-            
-        case JSKSystemSubclavianArteries:
-            t_return = (kVesselDiameter + kBuffer + kVesselDiameter + kBuffer) + kSystemTwinWidth + kBuffer + kBuffer + kBuffer;
-            break;
-            
-        case JSKSystemRightArm:
-            t_return = kSystemTwinWidth;
-            break;
-            
-        case JSKSystemLeftArm:
-            t_return = kSystemTwinWidth;
-            break;
-            
-        case JSKSystemSubclavianVeins:
-            t_return = [self pointCountForSystem:JSKSystemSubclavianArteries];
-            break;
-            
-        case JSKSystemCeliacArtery:
-            t_return = (kVesselDiameter + kBuffer + kVesselDiameter + kBuffer) + kBuffer;
-            break;
-            
-        case JSKSystemGut:
-            t_return = kSystemTwinWidth;
-            break;
-            
-        case JSKSystemHepaticPortalVein:
-            t_return = kBuffer * 3;
-            break;
-            
-        case JSKSystemHepaticArtery:
-            t_return = (kBuffer + kSystemTwinWidth) + kBuffer;
-            break;
-            
-        case JSKSystemLiver:
-            t_return = kSystemTwinWidth;
-            break;
-            
-        case JSKSystemHepaticVeins:
-            t_return = kSystemOriginX - kPaddingX;
-            break;
-            
-        case JSKSystemInferiorVenaCava:
-            break;
-            
-        case JSKSystemRenalArteries:
-            break;
-            
-        case JSKSystemRightKidney:
-            break;
-            
-        case JSKSystemLeftKidney:
-            break;
-            
-        case JSKSystemRenalVeins:
-            break;
-            
-        case JSKSystemTesticularisArteries:
-            break;
-            
-        case JSKSystemLowerBody:
-            break;
-            
-        case JSKSystemTesticularisVeins:
-            break;
-            
-        case JSKSystemIliacArtieries:
-            break;
-            
-        case JSKSystemRightLeg:
-            break;
-            
-        case JSKSystemLeftLeg:
-            break;
-            
-        case JSKSystemIliacVeins:
-            break;
-            
-        case JSKSystem_MaxValue:
-            break;
-    }
+    
+    NSString *t_magicNumberString = @"300,405,139,139,279,442,46,300,48,423,251,139,139,257,68,139,70,183,139,48,0,0,0,0,0,0,0,0,0,0,0,0";
+    NSArray *t_magicNumbers = [t_magicNumberString componentsSeparatedByString:@","];
+    
+    if (system < t_magicNumbers.count)
+        t_return = [[t_magicNumbers objectAtIndex:system] integerValue];
+    
     return t_return;
 }
 

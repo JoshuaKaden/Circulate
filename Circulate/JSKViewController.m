@@ -12,7 +12,7 @@
 CGFloat const kPadding = 47.0;
 CGFloat const kPaddingPhone = 10.0;
 CGFloat const kAnimationSpeed = 0.5;
-CGFloat const kDrawSpeed = 0.0000001;
+CGFloat const kDrawSpeed = 0.000001;
 
 @interface JSKViewController () {
     UIView *_framingView;
@@ -116,8 +116,8 @@ CGFloat const kDrawSpeed = 0.0000001;
 - (void)startButtonTapped:(id)sender
 {
     if (_isDrawing) {
-        _shouldPause = !_shouldPause;
-        if (_shouldPause)
+//        _shouldPause = !_shouldPause;
+//        if (_shouldPause)
             return;
     }
     _isDrawing = YES;
@@ -132,8 +132,16 @@ CGFloat const kDrawSpeed = 0.0000001;
     [_timer invalidate];
     _timer = nil;
     
-    if (_shouldPause)
-        return;
+//    if (_shouldPause)
+//        return;
+    
+//    NSUInteger t_count = _circulatoryView.pointCount;
+//    [UIView animateWithDuration:2.0 animations:^{
+//        _circulatoryView.pointIndex = t_count - 1;
+//        [_circulatoryView setNeedsDisplay];
+//    } completion:^(BOOL finished){
+//        _isDrawing = NO;
+//    }];
     
     [UIView animateWithDuration:kAnimationSpeed animations:^{
         _circulatoryView.pointIndex++;
