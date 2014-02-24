@@ -8,21 +8,19 @@
 
 #import "JSKCirculatoryView.h"
 
-NSUInteger const kSystemCount = 33;
-
 CGFloat const kPhoneWidth = 320.0;
 CGFloat const kPhoneHeight = 480.0;
 CGFloat const kPhone5Height = 568.0;
 CGFloat const kPadWidth = 664.0;
 CGFloat const kPadHeight = 920.0;
 
-CGFloat const kPaddingX = 20.0;
+CGFloat const kPaddingX = 2.0;
 CGFloat const kWallThickness = 1.0;
 CGFloat const kBuffer = 22.0;
 
 CGFloat const kVesselDiameter = 2.0;
 CGFloat const kVesselOffset = 0.0;
-CGFloat const kSystemHeight = 78.0;
+CGFloat const kSystemHeight = 68.0;
 CGFloat const kSystemWidth = 150.0 * 2;
 CGFloat const kSystemOriginX = kPaddingX + ((kVesselDiameter + kBuffer) * 2);
 CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
@@ -34,6 +32,9 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     UIColor *_oxygenatedColor;
     UIColor *_deoxygenatedColor;
     NSMutableDictionary *_magicNumbers;
+    CGSize _systemSize;
+    CGSize _systemTwinSize;
+    CGSize _bufferSize;
 }
 
 @property (nonatomic, assign) NSUInteger pointCount;
@@ -54,6 +55,10 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+        _systemSize = CGSizeMake(kSystemWidth, kSystemHeight);
+        _systemTwinSize = CGSizeMake(kSystemTwinWidth, kSystemHeight);
+        _bufferSize = CGSizeMake(kBuffer, kBuffer);
+        
         self.pointCount = [self calculatePointCount];
         _pointIndex = self.pointCount;
         _oxygenatedColor = [UIColor colorWithRed:0.8 green:0.0 blue:0.0 alpha:0.5];
@@ -80,12 +85,12 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
         [self drawRect:rect system:t_system];
     
-    if (self.pointIndex == self.pointCount - 1) {
+    if (self.pointIndex >= self.pointCount - 1) {
         NSMutableArray *t_counts = [NSMutableArray array];
         for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
             [t_counts addObject:[_magicNumbers valueForKey:[NSString stringWithFormat:@"%02d", t_system]]];
         
-        NSLog(@"%@", _magicNumbers);
+//        NSLog(@"%@", _magicNumbers);
         NSLog(@"%@", [t_counts componentsJoinedByString:@","]);
     }
     
@@ -120,8 +125,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = kSystemWidth;
-            CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, kSystemHeight);
+            CGFloat t_delta = _systemSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, _systemSize.height);
             if ((self.currentPointIndex + t_delta) > self.pointIndex)
                 t_frame.size.width = t_trim;
             
@@ -137,7 +142,6 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
             CGPathRelease(pathRef);
             [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
-//            [t_magicNumbers insertObject:[NSNumber numberWithUnsignedInteger:t_delta] atIndex:system];
             self.currentPointIndex += t_delta;
             break;
         }
@@ -156,7 +160,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kVesselDiameter + kBuffer;
+            CGFloat t_delta = kVesselDiameter + _bufferSize.width;
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -169,7 +173,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kBuffer + kWallThickness + kVesselDiameter + kWallThickness + kBuffer + kSystemHeight + kBuffer;
+                t_delta = _bufferSize.height + kWallThickness + kVesselDiameter + kWallThickness + _bufferSize.height + _systemSize.height + _bufferSize.height;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -183,7 +187,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
             
             if (t_shouldDraw) {
-                t_delta = kVesselDiameter + kBuffer;
+                t_delta = kVesselDiameter + _bufferSize.width;
                 CGPoint t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -197,7 +201,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
             
             if (t_shouldDraw) {
-                t_delta = kBuffer + kVesselDiameter;
+                t_delta = _bufferSize.height + kVesselDiameter;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -211,8 +215,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
 
             if (t_shouldDraw) {
-                t_delta = kSystemTwinWidth + kBuffer;
-                t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y - (kBuffer + kVesselDiameter));
+                t_delta = _systemTwinSize.width + _bufferSize.width;
+                t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y - (_bufferSize.height + kVesselDiameter));
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
@@ -228,7 +232,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
 
             if (t_shouldDraw) {
-                t_delta = kBuffer + kVesselDiameter;
+                t_delta = _bufferSize.height + kVesselDiameter;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -242,7 +246,6 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
             
             [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
-//            [t_magicNumbers insertObject:[NSNumber numberWithUnsignedInteger:t_pointCount] atIndex:system];
             
             CGContextAddPath(t_context, pathRef);
             CGContextStrokePath(t_context);
@@ -265,8 +268,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = kSystemTwinWidth;
-            CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, kSystemHeight);
+            CGFloat t_delta = _systemTwinSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x, t_origin.y, t_delta, _systemSize.height);
             if ((self.currentPointIndex + t_delta) > self.pointIndex)
                 t_frame.size.width = t_trim;
             
@@ -298,7 +301,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kVesselDiameter + kBuffer;
+            CGFloat t_delta = kVesselDiameter + _bufferSize.height;
             CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -311,7 +314,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kBuffer + kSystemTwinWidth + kBuffer + kVesselDiameter;
+                t_delta = _bufferSize.width + _systemTwinSize.width + _bufferSize.width + kVesselDiameter;
                 t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -325,7 +328,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
             
             if (t_shouldDraw) {
-                t_delta = kBuffer;
+                t_delta = _bufferSize.height;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -339,7 +342,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
 
             if (t_shouldDraw) {
-                t_delta = kBuffer + kVesselDiameter;
+                t_delta = _bufferSize.width + kVesselDiameter;
                 t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -353,9 +356,9 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
             
             if (t_shouldDraw) {
-                t_delta = kBuffer + kVesselDiameter;
+                t_delta = _bufferSize.height + kVesselDiameter;
                 CGPoint t_origin = [self originForSystem:JSKSystemRightLung];
-                t_origin = CGPointMake(t_origin.x + kSystemTwinWidth, t_origin.y + kSystemHeight + t_delta);
+                t_origin = CGPointMake(t_origin.x + _systemTwinSize.width, t_origin.y + _systemTwinSize.height + t_delta);
                 t_point = CGPointMake(t_origin.x, t_origin.y - t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -392,7 +395,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kVesselDiameter + kBuffer + kBuffer;
+            CGFloat t_delta = kVesselDiameter + _bufferSize.width + _bufferSize.width;
             CGPoint t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -407,15 +410,15 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             if (t_shouldDraw) {
                 CGPoint t_origin = [self originForSystem:system];
                 CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-                t_refPoint.x += (kSystemWidth + kVesselDiameter + kBuffer);
-                t_refPoint.y += (kSystemHeight);
+                t_refPoint.x += (_systemSize.width + kVesselDiameter + _bufferSize.height);
+                t_refPoint.y += (_systemSize.height);
                 
                 t_delta = t_origin.y - t_refPoint.y;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
                 CGPoint t_point2 = CGPointZero;
                 t_point2 = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
-                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                if (self.currentPointIndex + (t_delta) > self.pointIndex) {
                     t_shouldDraw = NO;
                     if (t_lastPoint.y > t_refPoint.y)
                         t_point.y = t_lastPoint.y - t_trim;
@@ -452,7 +455,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = (kVesselDiameter + kBuffer + kBuffer);
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -483,12 +486,12 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
             
             CGPoint t_origin = [self originForSystem:system];
-            t_origin.x += kSystemWidth;
+            t_origin.x += _systemSize.width;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = kSystemWidth;
-            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
+            CGFloat t_delta = _systemSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, _systemSize.height);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
                 t_frame.size.width = t_trim;
@@ -522,7 +525,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = (kVesselDiameter + kBuffer) * 2;
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width) * 2;
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -558,7 +561,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
             NSUInteger t_pointCount = 0;
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            CGFloat t_delta = (t_refPoint.y + (kSystemHeight - kBuffer)) - t_origin.y;
+            CGFloat t_delta = (t_refPoint.y + (_systemSize.height - _bufferSize.height)) - t_origin.y;
             CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -571,7 +574,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kVesselDiameter + kBuffer + kBuffer + kVesselDiameter;
+                t_delta = kVesselDiameter + _bufferSize.width + _bufferSize.width + kVesselDiameter;
                 t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -607,7 +610,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = (kVesselDiameter + kBuffer + kBuffer);
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -620,7 +623,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kBuffer;
+                t_delta = _bufferSize.height;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -634,8 +637,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
             
             if (t_shouldDraw) {
-                t_delta = kBuffer + kSystemTwinWidth;
-                t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y - kBuffer);
+                t_delta = _bufferSize.width + _systemTwinSize.width;
+                t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y - _bufferSize.height);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
@@ -643,13 +646,13 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
                 }
                 self.currentPointIndex += t_delta;
                 t_trim = self.pointIndex - self.currentPointIndex;
-                CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y - kBuffer);
+                CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y - _bufferSize.height);
                 CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
                 t_lastPoint = t_point;
             }
 
             if (t_shouldDraw) {
-                t_delta = kBuffer;
+                t_delta = _bufferSize.height;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -682,12 +685,12 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
             
             CGPoint t_origin = [self originForSystem:system];
-            t_origin.x += kSystemTwinWidth;
+            t_origin.x += _systemTwinSize.width;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = kSystemTwinWidth;
-            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
+            CGFloat t_delta = _systemTwinSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, _systemSize.height);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
                 t_frame.size.width = t_trim;
@@ -721,7 +724,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kBuffer + kVesselDiameter;
+            CGFloat t_delta = _bufferSize.height + kVesselDiameter;
             CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -749,8 +752,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
 
             if (t_shouldDraw) {
                 CGPoint t_refPoint = [self originForSystem:JSKSystemLeftArm];
-                t_refPoint.y += kSystemHeight;
-                t_delta = kBuffer + kVesselDiameter;
+                t_refPoint.y += _systemSize.height;
+                t_delta = _bufferSize.height + kVesselDiameter;
                 t_point = CGPointMake(t_refPoint.x, t_refPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -787,7 +790,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = (kVesselDiameter + kBuffer + kBuffer);
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -800,7 +803,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kBuffer;
+                t_delta = _bufferSize.height;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -832,12 +835,12 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
             
             CGPoint t_origin = [self originForSystem:system];
-            t_origin.x += kSystemTwinWidth;
+            t_origin.x += _systemTwinSize.width;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = kSystemTwinWidth;
-            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
+            CGFloat t_delta = _systemTwinSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, _systemSize.height);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
                 t_frame.size.width = t_trim;
@@ -871,7 +874,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kBuffer + kVesselDiameter;
+            CGFloat t_delta = _bufferSize.height + kVesselDiameter;
             CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -884,7 +887,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kBuffer;
+                t_delta = _bufferSize.width;
                 t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -898,7 +901,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             }
             
             if (t_shouldDraw) {
-                t_delta = kBuffer + kVesselDiameter;
+                t_delta = _bufferSize.height + kVesselDiameter;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -934,7 +937,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kSystemTwinWidth + kBuffer;
+            CGFloat t_delta = _systemTwinSize.width + _bufferSize.width;
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -947,7 +950,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = kBuffer;
+                t_delta = _bufferSize.height;
                 t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -979,12 +982,12 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
             
             CGPoint t_origin = [self originForSystem:system];
-            t_origin.x += kSystemTwinWidth;
+            t_origin.x += _systemTwinSize.width;
             CGMutablePathRef pathRef = CGPathCreateMutable();
             CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-            CGFloat t_delta = kSystemTwinWidth;
-            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, kSystemHeight);
+            CGFloat t_delta = _systemTwinSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, _systemSize.height);
             if ((self.currentPointIndex + t_delta) > self.pointIndex) {
                 t_frame.origin.x = t_origin.x - t_trim;
                 t_frame.size.width = t_trim;
@@ -1041,7 +1044,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemInferiorVenaCava: {
             CGFloat t_borderWidth = kVesselDiameter;
-            UIColor *t_borderColor = _oxygenatedColor;
+            UIColor *t_borderColor = _deoxygenatedColor;
             
             CGContextSetLineWidth(t_context, t_borderWidth);
             CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
@@ -1053,9 +1056,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_refPoint.x += (kSystemWidth + kVesselDiameter + kBuffer);
-            t_refPoint.y += (kSystemHeight);
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
+            t_refPoint.y += (_systemSize.height);
             CGFloat t_delta = t_origin.y - t_refPoint.y;
             CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
             CGPoint t_point2 = CGPointZero;
@@ -1075,28 +1077,18 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             t_lastPoint = t_point;
             
             if (t_shouldDraw) {
-                CGPoint t_origin = [self originForSystem:system];
-                CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-                t_refPoint.x += (kSystemWidth + kVesselDiameter + kBuffer);
-                t_refPoint.y += (kSystemHeight);
-                
-                t_delta = t_origin.y - t_refPoint.y;
-                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
-                CGPoint t_point2 = CGPointZero;
-                t_point2 = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y);
+                t_delta = kSystemOriginX - kPaddingX;
+                t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
                     t_shouldDraw = NO;
-                    if (t_lastPoint.y > t_refPoint.y)
-                        t_point.y = t_lastPoint.y - t_trim;
-                    t_point2.y = t_lastPoint.y + t_trim;
+                    t_point.x = t_lastPoint.x + t_trim;
                 }
                 self.currentPointIndex += t_delta;
                 t_trim = self.pointIndex - self.currentPointIndex;
-                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
-                CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y);
-                CGPathAddLineToPoint(pathRef, nil, t_point2.x, t_point2.y);
                 t_lastPoint = t_point;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             }
             
             [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
@@ -1252,26 +1244,13 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     return t_return;
 }
 
-- (NSUInteger)pointCountForSystem:(JSKSystem)system
-{
-    NSUInteger t_return = 0;
-    
-    NSString *t_magicNumberString = @"300,405,139,139,279,442,46,300,48,423,251,139,139,257,68,139,70,183,139,48,0,0,0,0,0,0,0,0,0,0,0,0";
-    NSArray *t_magicNumbers = [t_magicNumberString componentsSeparatedByString:@","];
-    
-    if (system < t_magicNumbers.count)
-        t_return = [[t_magicNumbers objectAtIndex:system] integerValue];
-    
-    return t_return;
-}
-
 - (CGPoint)originForSystem:(JSKSystem)system
 {
     CGPoint t_return = CGPointZero;
     switch (system) {
         case JSKSystemHeart: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            CGFloat t_y = t_refPoint.y + (kSystemHeight * 3) + ((kBuffer + kVesselDiameter + kBuffer) * 3) + (kVesselDiameter + kBuffer);
+            CGFloat t_y = t_refPoint.y + (_systemSize.height * 3) + ((_bufferSize.height + kVesselDiameter + _bufferSize.height) * 3) + (kVesselDiameter + _bufferSize.height);
             t_return = CGPointMake(kSystemOriginX, t_y);
             break;
         }
@@ -1285,7 +1264,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemLeftLung: {
             CGPoint t_heartPoint = [self originForSystem:JSKSystemHeart];
-            CGFloat t_delta = (kBuffer + kVesselDiameter + kBuffer) + kSystemHeight;
+            CGFloat t_delta = (_bufferSize.height + kVesselDiameter + _bufferSize.height) + _systemSize.height;
             t_return = CGPointMake(t_heartPoint.x, t_heartPoint.y - t_delta);
             break;
         }
@@ -1298,19 +1277,19 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
         
         case JSKSystemPulmonaryVein: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemLeftLung];
-            t_return = CGPointMake(t_refPoint.x + kSystemTwinWidth, t_refPoint.y + kSystemHeight);
+            t_return = CGPointMake(t_refPoint.x + _systemTwinSize.width, t_refPoint.y + _systemSize.height);
             break;
         }
             
         case JSKSystemAorta: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            t_return = CGPointMake(t_refPoint.x + kSystemWidth, t_refPoint.y + kSystemHeight);
+            t_return = CGPointMake(t_refPoint.x + _systemSize.width, t_refPoint.y + _systemSize.height);
             break;
         }
         
         case JSKSystemCarotidArteries: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_return = CGPointMake(t_refPoint.x + kSystemWidth + (kVesselDiameter + kBuffer + kBuffer), t_refPoint.y + kSystemHeight);
+            t_return = CGPointMake(t_refPoint.x + _systemSize.width + (kVesselDiameter + _bufferSize.width + _bufferSize.width), t_refPoint.y + _systemSize.height);
             break;
         }
     
@@ -1319,58 +1298,58 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             break;
             
         case JSKSystemJugularVeins:
-            t_return = CGPointMake(kSystemOriginX, kSystemHeight + kWallThickness);
+            t_return = CGPointMake(kSystemOriginX, _systemSize.height + kWallThickness);
             break;
             
         case JSKSystemSuperiorVenaCava:
-            t_return = CGPointMake(kPaddingX, kSystemHeight);
+            t_return = CGPointMake(kPaddingX, _systemSize.height);
             break;
             
         case JSKSystemSubclavianArteries: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemCarotidArteries];
-            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + kBuffer + kVesselDiameter);
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _bufferSize.height + kVesselDiameter);
             break;
         }
             
         case JSKSystemRightArm:{
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + (kSystemHeight + kBuffer + kVesselDiameter + kBuffer));
+            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + (_systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height));
             break;
         }
             
         case JSKSystemLeftArm: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + (kSystemHeight + kBuffer + kVesselDiameter + kBuffer));
+            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + (_systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height));
             break;
         }
             
         case JSKSystemSubclavianVeins: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemRightArm];
-            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + kSystemHeight);
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height);
             break;
         }
         
         case JSKSystemCeliacArtery: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            t_return = CGPointMake(t_refPoint.x + kSystemWidth + (kVesselDiameter + kBuffer) + kBuffer, t_refPoint.y + kSystemHeight + kBuffer + kVesselDiameter);
+            t_return = CGPointMake(t_refPoint.x + _systemSize.width + (kVesselDiameter + _bufferSize.width) + _bufferSize.width, t_refPoint.y + _systemSize.height + _bufferSize.height + kVesselDiameter);
             break;
         }
             
         case JSKSystemGut: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + kSystemHeight + kBuffer + kVesselDiameter + kBuffer);
+            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + _systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height);
             break;
         }
         
         case JSKSystemHepaticPortalVein: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemGut];
-            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + kSystemHeight);
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height);
             break;
         }
             
         case JSKSystemHepaticArtery: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemGut];
-            t_return = CGPointMake(t_refPoint.x + kSystemTwinWidth, t_refPoint.y - kBuffer);
+            t_return = CGPointMake(t_refPoint.x + _systemTwinSize.width, t_refPoint.y - _bufferSize.height);
             break;
         }
             
@@ -1382,12 +1361,15 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemHepaticVeins: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemLiver];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + kSystemHeight);
+            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + _systemSize.height);
             break;
         }
             
-        case JSKSystemInferiorVenaCava:
+        case JSKSystemInferiorVenaCava: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHepaticVeins];
+            t_return = CGPointMake(kPaddingX, t_refPoint.y);
             break;
+        }
             
         case JSKSystemRenalArteries:
             break;
@@ -1415,7 +1397,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemRightLeg: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            CGFloat t_deltaY = ((kSystemHeight + kBuffer) * 3) + kVesselDiameter + kBuffer;
+            CGFloat t_deltaY = ((_systemSize.height + _bufferSize.height) * 3) + kVesselDiameter + _bufferSize.height;
             t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + t_deltaY);
             break;
         }
@@ -1438,6 +1420,8 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     
     for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
         t_count += [self pointCountForSystem:t_system];
+    
+    t_count += 250;
     
 //    t_count += [self pointCountForSystem:JSKSystemHeart];
 //    t_count += [self pointCountForSystem:JSKSystemPulmonaryArtery];
@@ -1479,6 +1463,20 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
 {
     _pointIndex = pointIndex;
     [self setNeedsDisplay];
+}
+
+- (NSUInteger)pointCountForSystem:(JSKSystem)system
+{
+    NSUInteger t_return = 0;
+    
+    NSString *t_magicNumberString = @"300,395,139,139,279,412,46,300,48,393,251,139,139,257,68,139,70,183,139,48,162,0,0,0,0,0,0,0,0,0,0,0";
+    //    NSString *t_magicNumberString = @"300,405,139,139,279,442,46,300,48,423,251,139,139,257,68,139,70,183,139,48,0,0,0,0,0,0,0,0,0,0,0,0";
+    NSArray *t_magicNumbers = [t_magicNumberString componentsSeparatedByString:@","];
+    
+    if (system < t_magicNumbers.count)
+        t_return = [[t_magicNumbers objectAtIndex:system] integerValue];
+    
+    return t_return;
 }
 
 @end
