@@ -16,7 +16,7 @@ CGFloat const kBufferPhone = 14.0;
 CGFloat const kSystemHeightPhone = 28.0;
 CGFloat const kSystemWidthPhone = 200.0;
 
-CGFloat const kPaddingX = 2.0;
+CGFloat const kPaddingX = 115.0;
 CGFloat const kWallThickness = 1.0;
 CGFloat const kVesselDiameter = 2.0;
 CGFloat const kVesselOffset = 0.0;
@@ -43,6 +43,7 @@ CGFloat const kPadHeight = 920.0;
 
 - (NSUInteger)calculatePointCount;
 - (void)drawRect:(CGRect)rect system:(JSKSystem)system;
+- (void)drawLabels:(CGRect)rect;
 - (NSString *)titleForSystem:(JSKSystem)system;
 - (NSUInteger)pointCountForSystem:(JSKSystem)system;
 - (CGPoint)originForSystem:(JSKSystem)system;
@@ -107,7 +108,74 @@ CGFloat const kPadHeight = 920.0;
     self.currentPointIndex = 0;
 //    _isDrawing = NO;
     
+    [self drawLabels:rect];
+    
     return;
+}
+
+- (void)drawLabels:(CGRect)rect
+{
+    if (_labelsHidden)
+        return;
+    
+    for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++) {
+        NSString *t_string = [self titleForSystem:t_system];
+        CGPoint t_origin = [self originForSystem:t_system];
+        NSMutableAttributedString *t_attributed = [[NSMutableAttributedString alloc] initWithString:t_string];
+        NSRange t_range = NSMakeRange(0, t_string.length);
+        [t_attributed addAttribute:NSFontAttributeName
+                      value:[UIFont fontWithName:@"Gill Sans" size:16]
+                      range:t_range];
+        [t_attributed addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:t_range];
+        
+        CGSize t_offset = CGSizeMake(4,2);
+        switch (t_system) {
+            case JSKSystemAorta: {
+                CGPoint t_refpoint = [self originForSystem:JSKSystemCeliacArtery];
+                t_origin.x = t_refpoint.x;
+                t_offset.width = 8;
+                t_offset.height = -11;
+                break;
+            }
+            case JSKSystemPulmonaryArtery:
+                t_offset.width = -18;
+                t_offset.height = -34;
+                break;
+            case JSKSystemPulmonaryVein:
+                t_offset.width = 6;
+                break;
+            case JSKSystemCarotidArteries:
+            case JSKSystemSubclavianArteries:
+            case JSKSystemCeliacArtery:
+            case JSKSystemRenalArteries:
+            case JSKSystemTesticularisArteries:
+            case JSKSystemIliacArtieries:
+                t_offset.width = 8;
+                t_offset.height = -11;
+                break;
+            case JSKSystemHepaticArtery:
+                t_offset.width = t_attributed.size.width * -1;
+                t_offset.height = (t_attributed.size.height + 4) * -1;
+                break;
+            case JSKSystemJugularVeins:
+            case JSKSystemHepaticVeins:
+            case JSKSystemTesticularisVeins:
+                t_offset.width = ((_bufferSize.width + kVesselDiameter + _bufferSize.width) + t_attributed.size.width + 8) * -1;
+                t_offset.height = -11;
+                break;
+            case JSKSystemSubclavianVeins:
+            case JSKSystemRenalVeins:
+            case JSKSystemIliacVeins: {
+                CGPoint t_refPoint = [self originForSystem:JSKSystemSuperiorVenaCava];
+                t_origin.x = t_refPoint.x;
+                t_offset.width = (t_attributed.size.width + 5) * -1;
+                t_offset.height = 10;
+                break;
+            }
+        }
+        
+        [t_attributed drawAtPoint:CGPointMake(t_origin.x + t_offset.width, t_origin.y + t_offset.height)];
+    }
 }
 
 - (void)drawRect:(CGRect)rect system:(JSKSystem)system
@@ -1592,99 +1660,131 @@ CGFloat const kPadHeight = 920.0;
     NSString *t_return = nil;
     switch (system) {
         case JSKSystemHeart:
+            t_return = NSLocalizedString(@"Heart", @"Heart");
             break;
             
         case JSKSystemPulmonaryArtery:
+            t_return = NSLocalizedString(@"Pulmonary Artery", @"Pulmonary Artery");
             break;
             
         case JSKSystemLeftLung:
+            t_return = NSLocalizedString(@"Left Lung", @"Left Lung");
             break;
             
         case JSKSystemRightLung:
+            t_return = NSLocalizedString(@"Right Lung", @"Right Lung");
             break;
             
         case JSKSystemPulmonaryVein:
+            t_return = NSLocalizedString(@"Pulmonary Vein", @"Pulmonary Vein");
             break;
             
         case JSKSystemAorta:
+            t_return = NSLocalizedString(@"Aorta", @"Aorta");
             break;
             
         case JSKSystemCarotidArteries:
+            t_return = NSLocalizedString(@"Carotid Arteries", @"Carotid Arteries");
             break;
             
         case JSKSystemHead:
+            t_return = NSLocalizedString(@"Head", @"Head");
             break;
             
         case JSKSystemJugularVeins:
+            t_return = NSLocalizedString(@"Jugular Veins", @"Jugular Veins");
             break;
             
         case JSKSystemSuperiorVenaCava:
+            t_return = NSLocalizedString(@"Superior Vena Cava", @"Superior Vena Cava");
             break;
             
         case JSKSystemSubclavianArteries:
+            t_return = NSLocalizedString(@"Subclavian Arteries", @"Subclavian Arteries");
             break;
             
         case JSKSystemRightArm:
+            t_return = NSLocalizedString(@"Right Arm", @"Right Arm");
             break;
             
         case JSKSystemLeftArm:
+            t_return = NSLocalizedString(@"Left Arm", @"Left Arm");
             break;
             
         case JSKSystemSubclavianVeins:
+            t_return = NSLocalizedString(@"Subclavian Veins", @"Subclavian Veins");
             break;
             
         case JSKSystemCeliacArtery:
+            t_return = NSLocalizedString(@"Celiac Artery", @"Celiac Artery");
             break;
             
         case JSKSystemGut:
+            t_return = NSLocalizedString(@"Gut", @"Gut");
             break;
             
         case JSKSystemHepaticPortalVein:
+            t_return = NSLocalizedString(@"Hepatic Portal Vein", @"Hepatic Portal Vein");
             break;
             
         case JSKSystemHepaticArtery:
+            t_return = NSLocalizedString(@"Hepatic Artery", @"Hepatic Artery");
             break;
             
         case JSKSystemLiver:
+            t_return = NSLocalizedString(@"Liver", @"Liver");
             break;
             
         case JSKSystemHepaticVeins:
+            t_return = NSLocalizedString(@"Hepatic Veins", @"Hepatic Veins");
             break;
             
         case JSKSystemInferiorVenaCava:
+            t_return = NSLocalizedString(@"Inferior Vena Cava", @"Inferior Vena Cava");
             break;
             
         case JSKSystemRenalArteries:
+            t_return = NSLocalizedString(@"Renal Arteries", @"Renal Arteries");
             break;
             
         case JSKSystemRightKidney:
+            t_return = NSLocalizedString(@"Right Kidney", @"Right Kidney");
             break;
             
         case JSKSystemLeftKidney:
+            t_return = NSLocalizedString(@"Left Kidney", @"Left Kidney");
             break;
             
         case JSKSystemRenalVeins:
+            t_return = NSLocalizedString(@"Renal Veins", @"Renal Veins");
             break;
             
         case JSKSystemTesticularisArteries:
+            t_return = NSLocalizedString(@"Testicularis Arteries", @"Testicularis Arteries");
             break;
             
         case JSKSystemLowerBody:
+            t_return = NSLocalizedString(@"Lower Body", @"Lower Body");
             break;
             
         case JSKSystemTesticularisVeins:
+            t_return = NSLocalizedString(@"Testicularis Veins", @"Testicularis Veins");
             break;
             
         case JSKSystemIliacArtieries:
+            t_return = NSLocalizedString(@"Iliac Arteries", @"Iliac Arteries");
             break;
             
         case JSKSystemRightLeg:
+            t_return = NSLocalizedString(@"Right Leg", @"Right Leg");
             break;
             
         case JSKSystemLeftLeg:
+            t_return = NSLocalizedString(@"Left Leg", @"Left Leg");
             break;
             
         case JSKSystemIliacVeins:
+            t_return = NSLocalizedString(@"Iliac Veins", @"Iliac Veins");
             break;
             
         case JSKSystem_MaxValue:
@@ -1942,6 +2042,12 @@ CGFloat const kPadHeight = 920.0;
 - (void)setPointIndex:(NSUInteger)pointIndex
 {
     _pointIndex = pointIndex;
+    [self setNeedsDisplay];
+}
+
+- (void)setLabelsHidden:(BOOL)labelsHidden
+{
+    _labelsHidden = labelsHidden;
     [self setNeedsDisplay];
 }
 

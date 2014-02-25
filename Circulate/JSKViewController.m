@@ -11,8 +11,14 @@
 
 CGFloat const kPadding = 47.0;
 CGFloat const kPaddingPhone = 10.0;
-CGFloat const kAnimationSpeed = 0.5;
+CGFloat const kAnimationSpeed = 0.001;
 CGFloat const kDrawSpeed = 0.000001;
+
+typedef enum {
+    JSKMenuButtonLabels,
+    JSKMenuButtonDraw,
+    JSKMenuButton_MaxValue
+} JSKMenuButton;
 
 @interface JSKViewController () {
     UIView *_framingView;
@@ -22,11 +28,14 @@ CGFloat const kDrawSpeed = 0.000001;
     NSTimer *_timer;
     BOOL _isDrawing;
     BOOL _shouldPause;
+    UIView *_menuView;
 }
 
 - (void)animateForLoad;
 - (void)startButtonTapped:(id)sender;
 - (void)timerFired:(id)sender;
+- (void)menuViewButtonTouched:(UIButton *)sender;
+- (void)draw;
 
 @end
 
@@ -66,7 +75,7 @@ CGFloat const kDrawSpeed = 0.000001;
     _circulatoryView = ({
         JSKCirculatoryView *t_view = [[JSKCirculatoryView alloc] initWithFrame:_boundingView.bounds];
         t_view.backgroundColor = _boundingView.backgroundColor;
-        t_view.pointIndex = 0.0;
+//        t_view.pointIndex = 0.0;
         [_boundingView addSubview:t_view];
         t_view;
     });
@@ -77,6 +86,40 @@ CGFloat const kDrawSpeed = 0.000001;
         [t_button addTarget:self action:@selector(startButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         [_boundingView addSubview:t_button];
         t_button;
+    });
+    
+    _menuView = ({
+        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(_boundingView.bounds.size.width - 100, 0.0, 100, 50)];
+        
+        UIButton *t_menuButton = ({
+            UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
+            [t_button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
+            t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+            t_button.frame = CGRectMake(0.0, 0.0, 100, 25);
+            [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
+            t_button.tag = JSKMenuButtonLabels;
+            [t_button setTitle:NSLocalizedString(@"Labels", @"Labels") forState:UIControlStateNormal];
+            [t_view addSubview:t_button];
+            t_button;
+        });
+        
+        t_menuButton = ({
+            UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
+            [t_button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
+            t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+            t_button.frame = CGRectMake(0.0, 20.0, 100, 25);
+            [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
+            t_button.tag = JSKMenuButtonDraw;
+            [t_button setTitle:NSLocalizedString(@"Draw", @"Draw") forState:UIControlStateNormal];
+            [t_view addSubview:t_button];
+            t_button;
+        });
+        
+        t_view.alpha = 0.0;
+        [_boundingView addSubview:t_view];
+        t_view;
     });
     
     [self animateForLoad];
@@ -115,12 +158,45 @@ CGFloat const kDrawSpeed = 0.000001;
 
 - (void)startButtonTapped:(id)sender
 {
+    [UIView animateWithDuration:0.5 animations:^{
+        if (_menuView.alpha == 0.0)
+            _menuView.alpha = 1.0;
+        else
+            _menuView.alpha = 0.0;
+    }];
+}
+
+- (void)menuViewButtonTouched:(UIButton *)sender
+{
+    JSKMenuButton t_type = (JSKMenuButton)sender.tag;
+    
+    switch (t_type) {
+        case JSKMenuButtonDraw:
+            [self draw];
+            break;
+        case JSKMenuButtonLabels:
+            break;
+        case JSKMenuButton_MaxValue:
+            break;
+    }
+    
+    [UIView animateWithDuration:0.5 animations:^{
+        _menuView.alpha = 0.0;
+        if (t_type == JSKMenuButtonLabels)
+            _circulatoryView.labelsHidden = !_circulatoryView.labelsHidden;
+    }];
+}
+
+- (void)draw
+{
     if (_isDrawing) {
-//        _shouldPause = !_shouldPause;
-//        if (_shouldPause)
-            return;
+        //        _shouldPause = !_shouldPause;
+        //        if (_shouldPause)
+        return;
     }
     _isDrawing = YES;
+    
+    _circulatoryView.labelsHidden = YES;
     
     if (_circulatoryView.pointIndex >= _circulatoryView.pointCount - 1)
         _circulatoryView.pointIndex = 0;

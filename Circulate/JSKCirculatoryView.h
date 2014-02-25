@@ -49,4 +49,6 @@ typedef enum {
 @property (readonly) NSUInteger pointCount;
 @property (nonatomic, assign) NSUInteger pointIndex;
 
+@property (nonatomic, assign) BOOL labelsHidden;
+
 @end
