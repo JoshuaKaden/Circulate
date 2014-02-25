@@ -20,7 +20,7 @@ CGFloat const kBuffer = 22.0;
 
 CGFloat const kVesselDiameter = 2.0;
 CGFloat const kVesselOffset = 0.0;
-CGFloat const kSystemHeight = 68.0;
+CGFloat const kSystemHeight = 60.0;
 CGFloat const kSystemWidth = 150.0 * 2;
 CGFloat const kSystemOriginX = kPaddingX + ((kVesselDiameter + kBuffer) * 2);
 CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
@@ -410,17 +410,20 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             if (t_shouldDraw) {
                 CGPoint t_origin = [self originForSystem:system];
                 CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-                t_refPoint.x += (_systemSize.width + kVesselDiameter + _bufferSize.height);
+                t_refPoint.x += (_systemSize.width + kVesselDiameter + _bufferSize.width);
                 t_refPoint.y += (_systemSize.height);
                 
-                t_delta = t_origin.y - t_refPoint.y;
-                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
+                CGFloat t_minY = t_refPoint.y;
+                CGFloat t_maxY = [self originForSystem:JSKSystemIliacArtieries].y;
+                
+                t_delta = t_maxY - t_origin.y;
+                t_point = CGPointMake(t_lastPoint.x, t_minY);
                 CGPoint t_point2 = CGPointZero;
-                t_point2 = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                t_point2 = CGPointMake(t_lastPoint.x, t_maxY);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + (t_delta) > self.pointIndex) {
                     t_shouldDraw = NO;
-                    if (t_lastPoint.y > t_refPoint.y)
+                    if (t_lastPoint.y - t_trim >= t_minY)
                         t_point.y = t_lastPoint.y - t_trim;
                     t_point2.y = t_lastPoint.y + t_trim;
                 }
@@ -1058,14 +1061,18 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             NSUInteger t_pointCount = 0;
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
             t_refPoint.y += (_systemSize.height);
-            CGFloat t_delta = t_origin.y - t_refPoint.y;
-            CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y - t_delta);
+            
+            CGFloat t_minY = t_refPoint.y;
+            CGFloat t_maxY = [self originForSystem:JSKSystemLeftLeg].y + _systemSize.height + _bufferSize.height;
+            
+            CGFloat t_delta = t_maxY - t_origin.y;
+            CGPoint t_point = CGPointMake(t_lastPoint.x, t_minY);
             CGPoint t_point2 = CGPointZero;
-            t_point2 = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+            t_point2 = CGPointMake(t_lastPoint.x, t_maxY);
             t_pointCount += t_delta;
-            if (self.currentPointIndex + t_delta > self.pointIndex) {
+            if (self.currentPointIndex + (t_delta) > self.pointIndex) {
                 t_shouldDraw = NO;
-                if (t_lastPoint.y > t_refPoint.y)
+                if (t_lastPoint.y - t_trim >= t_minY)
                     t_point.y = t_lastPoint.y - t_trim;
                 t_point2.y = t_lastPoint.y + t_trim;
             }
@@ -1100,38 +1107,470 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             break;
         }
             
-        case JSKSystemRenalArteries:
+        case JSKSystemRenalArteries: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _oxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            if (t_shouldDraw) {
+                t_delta = _bufferSize.height;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_lastPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                t_lastPoint = t_point;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            }
+            
+            if (t_shouldDraw) {
+                t_delta = _bufferSize.width + _systemTwinSize.width;
+                t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y - _bufferSize.height);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.x = t_lastPoint.x - t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y - _bufferSize.height);
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            if (t_shouldDraw) {
+                t_delta = _bufferSize.height;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_lastPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                t_lastPoint = t_point;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            }
+            
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
             break;
+        }
             
         case JSKSystemRightKidney:
-            break;
+        case JSKSystemLeftKidney: {
+            CGFloat t_borderWidth = kWallThickness;
+            UIColor *t_borderColor = [UIColor lightGrayColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
             
-        case JSKSystemLeftKidney:
-            break;
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
             
-        case JSKSystemRenalVeins:
-            break;
+            CGPoint t_origin = [self originForSystem:system];
+            t_origin.x += _systemTwinSize.width;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
             
-        case JSKSystemTesticularisArteries:
-            break;
+            CGFloat t_delta = _systemTwinSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, _systemSize.height);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex) {
+                t_frame.origin.x = t_origin.x - t_trim;
+                t_frame.size.width = t_trim;
+            }
             
-        case JSKSystemLowerBody:
-            break;
+            CGPathAddRect(pathRef, nil, t_frame);
             
-        case JSKSystemTesticularisVeins:
-            break;
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
             
-        case JSKSystemIliacArtieries:
+            CGContextAddPath(t_context, pathRef);
+            CGContextFillPath(t_context);
+            
+            CGPathRelease(pathRef);
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
             break;
+        }
+            
+        case JSKSystemRenalVeins: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _deoxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = _bufferSize.height + kVesselDiameter;
+            CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.y = t_lastPoint.y + t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            if (t_shouldDraw) {
+                t_delta = t_lastPoint.x - kPaddingX;
+                t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.x = t_lastPoint.x - t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            if (t_shouldDraw) {
+                CGPoint t_refPoint = [self originForSystem:JSKSystemLeftKidney];
+                t_refPoint.y += _systemSize.height;
+                t_delta = _bufferSize.height + kVesselDiameter;
+                t_point = CGPointMake(t_refPoint.x, t_refPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_refPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathMoveToPoint(pathRef, nil, t_refPoint.x, t_refPoint.y);
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemTesticularisArteries: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _oxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemLowerBody: {
+            CGFloat t_borderWidth = kWallThickness;
+            UIColor *t_borderColor = [UIColor lightGrayColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            t_origin.x += _systemSize.width;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            
+            CGFloat t_delta = _systemSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, _systemSize.height);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex) {
+                t_frame.origin.x = t_origin.x - t_trim;
+                t_frame.size.width = t_trim;
+            }
+            
+            CGPathAddRect(pathRef, nil, t_frame);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextFillPath(t_context);
+            
+            CGPathRelease(pathRef);
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
+            break;
+        }
+            
+        case JSKSystemTesticularisVeins: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _deoxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = kSystemOriginX - kPaddingX;
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
+            
+        case JSKSystemIliacArtieries: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _oxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
+            CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.x = t_lastPoint.x - t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            if (t_shouldDraw) {
+                t_delta = _bufferSize.height;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_lastPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                t_lastPoint = t_point;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            }
+            
+            if (t_shouldDraw) {
+                t_delta = _bufferSize.width + _systemTwinSize.width;
+                t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y - _bufferSize.height);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.x = t_lastPoint.x - t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y - _bufferSize.height);
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            if (t_shouldDraw) {
+                t_delta = _bufferSize.height;
+                t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_lastPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                t_lastPoint = t_point;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            }
+            
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
             
         case JSKSystemRightLeg:
-            break;
+        case JSKSystemLeftLeg: {
+            CGFloat t_borderWidth = kWallThickness;
+            UIColor *t_borderColor = [UIColor lightGrayColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
             
-        case JSKSystemLeftLeg:
-            break;
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            CGContextSetFillColorWithColor(t_context, t_fillColor.CGColor);
             
-        case JSKSystemIliacVeins:
+            CGPoint t_origin = [self originForSystem:system];
+            t_origin.x += _systemTwinSize.width;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            
+            CGFloat t_delta = _systemTwinSize.width;
+            CGRect t_frame = CGRectMake(t_origin.x - t_delta, t_origin.y, t_delta, _systemSize.height);
+            if ((self.currentPointIndex + t_delta) > self.pointIndex) {
+                t_frame.origin.x = t_origin.x - t_trim;
+                t_frame.size.width = t_trim;
+            }
+            
+            CGPathAddRect(pathRef, nil, t_frame);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextFillPath(t_context);
+            
+            CGPathRelease(pathRef);
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_delta] forKey:[NSString stringWithFormat:@"%02d", system]];
+            self.currentPointIndex += t_delta;
             break;
+        }
+            
+        case JSKSystemIliacVeins: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            UIColor *t_borderColor = _deoxygenatedColor;
+            
+            CGContextSetLineWidth(t_context, t_borderWidth);
+            CGContextSetStrokeColorWithColor(t_context, t_borderColor.CGColor);
+            
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            CGMutablePathRef pathRef = CGPathCreateMutable();
+            CGPathMoveToPoint(pathRef, nil, t_origin.x, t_origin.y);
+            BOOL t_shouldDraw = YES;
+            
+            NSUInteger t_pointCount = 0;
+            CGFloat t_delta = _bufferSize.height;
+            CGPoint t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
+            t_pointCount += t_delta;
+            if (self.currentPointIndex + t_delta > self.pointIndex) {
+                t_shouldDraw = NO;
+                t_point.y = t_lastPoint.y + t_trim;
+            }
+            self.currentPointIndex += t_delta;
+            t_trim = self.pointIndex - self.currentPointIndex;
+            t_lastPoint = t_point;
+            CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+            
+            if (t_shouldDraw) {
+                t_delta = t_lastPoint.x - kPaddingX;
+                t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.x = t_lastPoint.x - t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            if (t_shouldDraw) {
+                CGPoint t_refPoint = [self originForSystem:JSKSystemLeftLeg];
+                t_refPoint.y += _systemSize.height;
+                t_delta = _bufferSize.height + kVesselDiameter;
+                t_point = CGPointMake(t_refPoint.x, t_refPoint.y + t_delta);
+                t_pointCount += t_delta;
+                if (self.currentPointIndex + t_delta > self.pointIndex) {
+                    t_shouldDraw = NO;
+                    t_point.y = t_refPoint.y + t_trim;
+                }
+                self.currentPointIndex += t_delta;
+                t_trim = self.pointIndex - self.currentPointIndex;
+                CGPathMoveToPoint(pathRef, nil, t_refPoint.x, t_refPoint.y);
+                CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
+                t_lastPoint = t_point;
+            }
+            
+            [t_magicNumbers setValue:[NSNumber numberWithUnsignedInteger:t_pointCount] forKey:[NSString stringWithFormat:@"%02d", system]];
+            
+            CGContextAddPath(t_context, pathRef);
+            CGContextStrokePath(t_context);
+            
+            CGPathRelease(pathRef);
+            break;
+        }
             
         case JSKSystem_MaxValue:
             break;
@@ -1371,42 +1810,73 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             break;
         }
             
-        case JSKSystemRenalArteries:
+        case JSKSystemRenalArteries: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemCeliacArtery];
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height + (_bufferSize.height + kVesselDiameter + _bufferSize.height) + _bufferSize.height);
             break;
-            
-        case JSKSystemRightKidney:
+        }
+        
+        case JSKSystemRightKidney: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemRenalArteries];
+            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + _bufferSize.height);
             break;
-            
-        case JSKSystemLeftKidney:
+        }
+        
+        case JSKSystemLeftKidney: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemRenalArteries];
+            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + _bufferSize.height);
             break;
-            
-        case JSKSystemRenalVeins:
+        }
+        
+        case JSKSystemRenalVeins: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemRightKidney];
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height);
             break;
-            
-        case JSKSystemTesticularisArteries:
+        }
+        
+        case JSKSystemTesticularisArteries: {
+            CGPoint t_renalVeinPoint = [self originForSystem:JSKSystemRenalVeins];
+            CGPoint t_renalArteryPoint = [self originForSystem:JSKSystemRenalArteries];
+            t_return = CGPointMake(t_renalArteryPoint.x, t_renalVeinPoint.y + _bufferSize.height + kVesselDiameter + _bufferSize.height);
             break;
-            
-        case JSKSystemLowerBody:
+        }
+        
+        case JSKSystemLowerBody: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemLeftKidney];
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height);
             break;
+        }
             
-        case JSKSystemTesticularisVeins:
+        case JSKSystemTesticularisVeins: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemLowerBody];
+            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + _systemSize.height);
             break;
-            
-        case JSKSystemIliacArtieries:
+        }
+        
+        case JSKSystemIliacArtieries: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemTesticularisArteries];
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height + _bufferSize.height);
             break;
-            
+        }
+        
         case JSKSystemRightLeg: {
-            CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            CGFloat t_deltaY = ((_systemSize.height + _bufferSize.height) * 3) + kVesselDiameter + _bufferSize.height;
+            CGPoint t_refPoint = [self originForSystem:JSKSystemIliacArtieries];
+            CGFloat t_deltaY = (_bufferSize.height);
             t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + t_deltaY);
             break;
         }
             
-        case JSKSystemLeftLeg:
+        case JSKSystemLeftLeg: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemRightLeg];
+            t_return = CGPointMake(kSystemOriginX, t_refPoint.y);
             break;
+        }
             
-        case JSKSystemIliacVeins:
+        case JSKSystemIliacVeins: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemRightLeg];
+            t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height);
             break;
+        }
             
         case JSKSystem_MaxValue:
             break;
@@ -1469,12 +1939,15 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
 {
     NSUInteger t_return = 0;
     
-    NSString *t_magicNumberString = @"300,395,139,139,279,412,46,300,48,393,251,139,139,257,68,139,70,183,139,48,162,0,0,0,0,0,0,0,0,0,0,0";
-    //    NSString *t_magicNumberString = @"300,405,139,139,279,442,46,300,48,423,251,139,139,257,68,139,70,183,139,48,0,0,0,0,0,0,0,0,0,0,0,0";
+    NSString *t_magicNumberString = @"300,387,139,139,279,408,46,300,48,369,251,139,139,257,68,139,70,183,139,48,408,251,139,139,257,46,300,48,251,139,139,255";
+    //    NSString *t_magicNumberString = @"300,395,139,139,279,412,46,300,48,393,251,139,139,257,68,139,70,183,139,48,162,251,139,139,0,0,0,0,0,0,0,0";
     NSArray *t_magicNumbers = [t_magicNumberString componentsSeparatedByString:@","];
     
     if (system < t_magicNumbers.count)
         t_return = [[t_magicNumbers objectAtIndex:system] integerValue];
+    
+    
+//    t_return += 275;
     
     return t_return;
 }
