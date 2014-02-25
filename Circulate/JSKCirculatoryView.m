@@ -121,6 +121,12 @@ CGFloat const kPadHeight = 920.0;
     for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++) {
         NSString *t_string = [self titleForSystem:t_system];
         CGPoint t_origin = [self originForSystem:t_system];
+        
+        if (t_system == JSKSystemSuperiorVenaCava)
+            t_string = NSLocalizedString(@"Superior\nVena Cava", @"Superior\nVena Cava");
+        if (t_system == JSKSystemInferiorVenaCava)
+            t_string = NSLocalizedString(@"Inferior\nVena Cava", @"Inferior\nVena Cava");
+        
         NSMutableAttributedString *t_attributed = [[NSMutableAttributedString alloc] initWithString:t_string];
         NSRange t_range = NSMakeRange(0, t_string.length);
         [t_attributed addAttribute:NSFontAttributeName
@@ -157,6 +163,21 @@ CGFloat const kPadHeight = 920.0;
                 t_offset.width = t_attributed.size.width * -1;
                 t_offset.height = (t_attributed.size.height + 4) * -1;
                 break;
+            case JSKSystemSuperiorVenaCava: {
+//                NSMutableParagraphStyle *t_style = [[NSMutableParagraphStyle alloc] init];
+//                t_style.alignment = NSTextAlignmentRight;
+//                [t_attributed addAttribute:NSParagraphStyleAttributeName value:t_style range:t_range];
+                CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
+                t_offset.width = (t_attributed.size.width + 6) * -1;
+                t_origin.y = t_refPoint.y - 5;
+                break;
+            }
+            case JSKSystemInferiorVenaCava: {
+                CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
+                t_offset.width = (t_attributed.size.width + 6) * -1;
+                t_origin.y = t_refPoint.y + t_attributed.size.height + (t_attributed.size.height / 2) + 5;
+                break;
+            }
             case JSKSystemJugularVeins:
             case JSKSystemHepaticVeins:
             case JSKSystemTesticularisVeins:
