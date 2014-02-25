@@ -8,23 +8,24 @@
 
 #import "JSKCirculatoryView.h"
 
+CGFloat const kBuffer = 22.0;
+CGFloat const kSystemHeight = 60.0;
+CGFloat const kSystemWidth = 150.0 * 2;
+
+CGFloat const kBufferPhone = 14.0;
+CGFloat const kSystemHeightPhone = 28.0;
+CGFloat const kSystemWidthPhone = 200.0;
+
+CGFloat const kPaddingX = 2.0;
+CGFloat const kWallThickness = 1.0;
+CGFloat const kVesselDiameter = 2.0;
+CGFloat const kVesselOffset = 0.0;
+
 CGFloat const kPhoneWidth = 320.0;
 CGFloat const kPhoneHeight = 480.0;
 CGFloat const kPhone5Height = 568.0;
 CGFloat const kPadWidth = 664.0;
 CGFloat const kPadHeight = 920.0;
-
-CGFloat const kPaddingX = 2.0;
-CGFloat const kWallThickness = 1.0;
-CGFloat const kBuffer = 22.0;
-
-CGFloat const kVesselDiameter = 2.0;
-CGFloat const kVesselOffset = 0.0;
-CGFloat const kSystemHeight = 60.0;
-CGFloat const kSystemWidth = 150.0 * 2;
-CGFloat const kSystemOriginX = kPaddingX + ((kVesselDiameter + kBuffer) * 2);
-CGFloat const kSystemTwinWidth = (kSystemWidth / 2) - (kBuffer / 2);
-CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
 
 @interface JSKCirculatoryView () {
     NSUInteger _pulmonaryArteryPointCount;
@@ -45,6 +46,9 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
 - (NSString *)titleForSystem:(JSKSystem)system;
 - (NSUInteger)pointCountForSystem:(JSKSystem)system;
 - (CGPoint)originForSystem:(JSKSystem)system;
+- (CGFloat)systemOriginX;
+- (CGFloat)systemTwinWidth;
+- (CGFloat)systemTwinOriginX;
 
 @end
 
@@ -55,9 +59,15 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
-        _systemSize = CGSizeMake(kSystemWidth, kSystemHeight);
-        _systemTwinSize = CGSizeMake(kSystemTwinWidth, kSystemHeight);
         _bufferSize = CGSizeMake(kBuffer, kBuffer);
+        _systemSize = CGSizeMake(kSystemWidth, kSystemHeight);
+        _systemTwinSize = CGSizeMake([self systemTwinWidth], kSystemHeight);
+        
+        if (frame.size.width <= kPhoneWidth) {
+            _bufferSize = CGSizeMake(kBufferPhone, kBufferPhone);
+            _systemSize = CGSizeMake(kSystemWidthPhone, kSystemHeightPhone);
+            _systemTwinSize = CGSizeMake([self systemTwinWidth], kSystemHeightPhone);
+        }
         
         self.pointCount = [self calculatePointCount];
         _pointIndex = self.pointCount;
@@ -1024,7 +1034,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kSystemOriginX - kPaddingX;
+            CGFloat t_delta = [self systemOriginX] - kPaddingX;
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1085,7 +1095,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
             if (t_shouldDraw) {
                 CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y);
-                t_delta = kSystemOriginX - kPaddingX;
+                t_delta = [self systemOriginX] - kPaddingX;
                 t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1371,7 +1381,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = kSystemOriginX - kPaddingX;
+            CGFloat t_delta = [self systemOriginX] - kPaddingX;
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1690,7 +1700,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
         case JSKSystemHeart: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
             CGFloat t_y = t_refPoint.y + (_systemSize.height * 3) + ((_bufferSize.height + kVesselDiameter + _bufferSize.height) * 3) + (kVesselDiameter + _bufferSize.height);
-            t_return = CGPointMake(kSystemOriginX, t_y);
+            t_return = CGPointMake([self systemOriginX], t_y);
             break;
         }
             
@@ -1710,7 +1720,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
         
         case JSKSystemRightLung: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemLeftLung];
-            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y);
+            t_return = CGPointMake([self systemTwinOriginX], t_refPoint.y);
             break;
         }
         
@@ -1733,11 +1743,11 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
         }
     
         case JSKSystemHead:
-            t_return = CGPointMake(kSystemOriginX, kWallThickness);
+            t_return = CGPointMake([self systemOriginX], kWallThickness);
             break;
             
         case JSKSystemJugularVeins:
-            t_return = CGPointMake(kSystemOriginX, _systemSize.height + kWallThickness);
+            t_return = CGPointMake([self systemOriginX], _systemSize.height + kWallThickness);
             break;
             
         case JSKSystemSuperiorVenaCava:
@@ -1752,13 +1762,13 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemRightArm:{
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + (_systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height));
+            t_return = CGPointMake([self systemTwinOriginX], t_refPoint.y + (_systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height));
             break;
         }
             
         case JSKSystemLeftArm: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + (_systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height));
+            t_return = CGPointMake([self systemOriginX], t_refPoint.y + (_systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height));
             break;
         }
             
@@ -1776,7 +1786,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemGut: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + _systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height);
+            t_return = CGPointMake([self systemTwinOriginX], t_refPoint.y + _systemSize.height + _bufferSize.height + kVesselDiameter + _bufferSize.height);
             break;
         }
         
@@ -1794,13 +1804,13 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemLiver: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemGut];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y);
+            t_return = CGPointMake([self systemOriginX], t_refPoint.y);
             break;
         }
             
         case JSKSystemHepaticVeins: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemLiver];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + _systemSize.height);
+            t_return = CGPointMake([self systemOriginX], t_refPoint.y + _systemSize.height);
             break;
         }
             
@@ -1818,13 +1828,13 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
         
         case JSKSystemRightKidney: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemRenalArteries];
-            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + _bufferSize.height);
+            t_return = CGPointMake([self systemTwinOriginX], t_refPoint.y + _bufferSize.height);
             break;
         }
         
         case JSKSystemLeftKidney: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemRenalArteries];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + _bufferSize.height);
+            t_return = CGPointMake([self systemOriginX], t_refPoint.y + _bufferSize.height);
             break;
         }
         
@@ -1849,7 +1859,7 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
             
         case JSKSystemTesticularisVeins: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemLowerBody];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y + _systemSize.height);
+            t_return = CGPointMake([self systemOriginX], t_refPoint.y + _systemSize.height);
             break;
         }
         
@@ -1862,13 +1872,13 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
         case JSKSystemRightLeg: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemIliacArtieries];
             CGFloat t_deltaY = (_bufferSize.height);
-            t_return = CGPointMake(kSystemTwinOriginX, t_refPoint.y + t_deltaY);
+            t_return = CGPointMake([self systemTwinOriginX], t_refPoint.y + t_deltaY);
             break;
         }
             
         case JSKSystemLeftLeg: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemRightLeg];
-            t_return = CGPointMake(kSystemOriginX, t_refPoint.y);
+            t_return = CGPointMake([self systemOriginX], t_refPoint.y);
             break;
         }
             
@@ -1935,12 +1945,28 @@ CGFloat const kSystemTwinOriginX = kSystemOriginX + kSystemTwinWidth + kBuffer;
     [self setNeedsDisplay];
 }
 
+- (CGFloat)systemOriginX
+{
+    return kPaddingX + ((kVesselDiameter + _bufferSize.width) * 2);
+}
+
+- (CGFloat)systemTwinWidth {
+    return (_systemSize.width / 2) - (_bufferSize.width / 2);
+}
+
+- (CGFloat)systemTwinOriginX
+{
+    return [self systemOriginX] + [self systemTwinWidth] + _bufferSize.width;
+}
+
 - (NSUInteger)pointCountForSystem:(JSKSystem)system
 {
     NSUInteger t_return = 0;
     
     NSString *t_magicNumberString = @"300,387,139,139,279,408,46,300,48,369,251,139,139,257,68,139,70,183,139,48,408,251,139,139,257,46,300,48,251,139,139,255";
-    //    NSString *t_magicNumberString = @"300,395,139,139,279,412,46,300,48,393,251,139,139,257,68,139,70,183,139,48,162,251,139,139,0,0,0,0,0,0,0,0";
+    if (self.bounds.size.width <= kPhoneWidth)
+        t_magicNumberString = @"200,245,93,93,185,232,30,200,32,209,165,93,93,171,44,93,46,121,93,32,232,165,93,93,171,30,200,32,165,93,93,169";
+    
     NSArray *t_magicNumbers = [t_magicNumberString componentsSeparatedByString:@","];
     
     if (system < t_magicNumbers.count)
