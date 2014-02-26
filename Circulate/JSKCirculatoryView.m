@@ -11,12 +11,14 @@
 CGFloat const kBuffer = 22.0;
 CGFloat const kSystemHeight = 60.0;
 CGFloat const kSystemWidth = 150.0 * 2;
+CGFloat const kPaddingX = 120.0;
 
-CGFloat const kBufferPhone = 14.0;
+CGFloat const kBufferPhone = 12.0;
 CGFloat const kSystemHeightPhone = 28.0;
-CGFloat const kSystemWidthPhone = 200.0;
+CGFloat const kSystemWidthPhone = 120.0;
+CGFloat const kPaddingXPhone = 50.0;
 
-CGFloat const kPaddingX = 115.0;
+CGFloat const kPaddingY = 5;
 CGFloat const kWallThickness = 1.0;
 CGFloat const kVesselDiameter = 2.0;
 CGFloat const kVesselOffset = 0.0;
@@ -36,6 +38,7 @@ CGFloat const kPadHeight = 920.0;
     CGSize _systemSize;
     CGSize _systemTwinSize;
     CGSize _bufferSize;
+    CGFloat _paddingX;
 }
 
 @property (nonatomic, assign) NSUInteger pointCount;
@@ -63,11 +66,13 @@ CGFloat const kPadHeight = 920.0;
         _bufferSize = CGSizeMake(kBuffer, kBuffer);
         _systemSize = CGSizeMake(kSystemWidth, kSystemHeight);
         _systemTwinSize = CGSizeMake([self systemTwinWidth], kSystemHeight);
+        _paddingX = kPaddingX;
         
         if (frame.size.width <= kPhoneWidth) {
             _bufferSize = CGSizeMake(kBufferPhone, kBufferPhone);
             _systemSize = CGSizeMake(kSystemWidthPhone, kSystemHeightPhone);
             _systemTwinSize = CGSizeMake([self systemTwinWidth], kSystemHeightPhone);
+            _paddingX = kPaddingXPhone;
         }
         
         self.pointCount = [self calculatePointCount];
@@ -89,9 +94,9 @@ CGFloat const kPadHeight = 920.0;
     if (self.pointIndex == 0)
         return;
 
-//    if (_isDrawing)
-//        return;
-//    _isDrawing = YES;
+    if (_isDrawing)
+        return;
+    _isDrawing = YES;
     
     for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
         [self drawRect:rect system:t_system];
@@ -106,7 +111,7 @@ CGFloat const kPadHeight = 920.0;
     }
     
     self.currentPointIndex = 0;
-//    _isDrawing = NO;
+    _isDrawing = NO;
     
     [self drawLabels:rect];
     
@@ -132,6 +137,11 @@ CGFloat const kPadHeight = 920.0;
         [t_attributed addAttribute:NSFontAttributeName
                       value:[UIFont fontWithName:@"Gill Sans" size:16]
                       range:t_range];
+        if (self.bounds.size.width <= kPhoneWidth)
+            [t_attributed addAttribute:NSFontAttributeName
+                                 value:[UIFont fontWithName:@"Gill Sans" size:10]
+                                 range:t_range];
+
         [t_attributed addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:t_range];
         
         CGSize t_offset = CGSizeMake(4,2);
@@ -839,7 +849,7 @@ CGFloat const kPadHeight = 920.0;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = t_lastPoint.x - kPaddingX;
+                t_delta = t_lastPoint.x - _paddingX;
                 t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1123,7 +1133,7 @@ CGFloat const kPadHeight = 920.0;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = [self systemOriginX] - kPaddingX;
+            CGFloat t_delta = [self systemOriginX] - _paddingX;
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1184,7 +1194,7 @@ CGFloat const kPadHeight = 920.0;
             
             if (t_shouldDraw) {
                 CGPathMoveToPoint(pathRef, nil, t_lastPoint.x, t_lastPoint.y);
-                t_delta = [self systemOriginX] - kPaddingX;
+                t_delta = [self systemOriginX] - _paddingX;
                 t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1347,7 +1357,7 @@ CGFloat const kPadHeight = 920.0;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = t_lastPoint.x - kPaddingX;
+                t_delta = t_lastPoint.x - _paddingX;
                 t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1470,7 +1480,7 @@ CGFloat const kPadHeight = 920.0;
             BOOL t_shouldDraw = YES;
             
             NSUInteger t_pointCount = 0;
-            CGFloat t_delta = [self systemOriginX] - kPaddingX;
+            CGFloat t_delta = [self systemOriginX] - _paddingX;
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_pointCount += t_delta;
             if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1632,7 +1642,7 @@ CGFloat const kPadHeight = 920.0;
             CGPathAddLineToPoint(pathRef, nil, t_point.x, t_point.y);
             
             if (t_shouldDraw) {
-                t_delta = t_lastPoint.x - kPaddingX;
+                t_delta = t_lastPoint.x - _paddingX;
                 t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
                 t_pointCount += t_delta;
                 if (self.currentPointIndex + t_delta > self.pointIndex) {
@@ -1864,7 +1874,7 @@ CGFloat const kPadHeight = 920.0;
         }
     
         case JSKSystemHead:
-            t_return = CGPointMake([self systemOriginX], kWallThickness);
+            t_return = CGPointMake([self systemOriginX], kWallThickness + kPaddingY);
             break;
             
         case JSKSystemJugularVeins:
@@ -1872,7 +1882,7 @@ CGFloat const kPadHeight = 920.0;
             break;
             
         case JSKSystemSuperiorVenaCava:
-            t_return = CGPointMake(kPaddingX, _systemSize.height);
+            t_return = CGPointMake(_paddingX, _systemSize.height);
             break;
             
         case JSKSystemSubclavianArteries: {
@@ -1937,7 +1947,7 @@ CGFloat const kPadHeight = 920.0;
             
         case JSKSystemInferiorVenaCava: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHepaticVeins];
-            t_return = CGPointMake(kPaddingX, t_refPoint.y);
+            t_return = CGPointMake(_paddingX, t_refPoint.y);
             break;
         }
             
@@ -2074,7 +2084,7 @@ CGFloat const kPadHeight = 920.0;
 
 - (CGFloat)systemOriginX
 {
-    return kPaddingX + ((kVesselDiameter + _bufferSize.width) * 2);
+    return _paddingX + ((kVesselDiameter + _bufferSize.width) * 2);
 }
 
 - (CGFloat)systemTwinWidth {
@@ -2090,9 +2100,9 @@ CGFloat const kPadHeight = 920.0;
 {
     NSUInteger t_return = 0;
     
-    NSString *t_magicNumberString = @"300,387,139,139,279,408,46,300,48,369,251,139,139,257,68,139,70,183,139,48,408,251,139,139,257,46,300,48,251,139,139,255";
+    NSString *t_magicNumberString = @"300,387,139,139,279,408,46,300,48,374,251,139,139,257,68,139,70,183,139,48,408,251,139,139,257,46,300,48,251,139,139,255";
     if (self.bounds.size.width <= kPhoneWidth)
-        t_magicNumberString = @"200,245,93,93,185,232,30,200,32,209,165,93,93,171,44,93,46,121,93,32,232,165,93,93,171,30,200,32,165,93,93,169";
+        t_magicNumberString = @"120,190,54,54,134,212,26,120,28,198,116,54,54,122,38,54,40,78,54,28,212,116,54,54,122,26,120,28,116,54,54,120";
     
     NSArray *t_magicNumbers = [t_magicNumberString componentsSeparatedByString:@","];
     

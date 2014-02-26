@@ -11,8 +11,8 @@
 
 CGFloat const kPadding = 47.0;
 CGFloat const kPaddingPhone = 10.0;
-CGFloat const kAnimationSpeed = 0.001;
-CGFloat const kDrawSpeed = 0.000001;
+CGFloat const kAnimationSpeed = 0.4;
+CGFloat const kDrawSpeed = 0.01;
 
 typedef enum {
     JSKMenuButtonLabels,
@@ -89,14 +89,14 @@ typedef enum {
     });
     
     _menuView = ({
-        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(_boundingView.bounds.size.width - 100, 0.0, 100, 50)];
+        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(_boundingView.bounds.size.width - 100, 0.0, 100, 60)];
         
         UIButton *t_menuButton = ({
             UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
             [t_button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
             t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
             t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-            t_button.frame = CGRectMake(0.0, 0.0, 100, 25);
+            t_button.frame = CGRectMake(0.0, 0.0, 100, 30);
             [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
             t_button.tag = JSKMenuButtonLabels;
             [t_button setTitle:NSLocalizedString(@"Labels", @"Labels") forState:UIControlStateNormal];
@@ -109,7 +109,7 @@ typedef enum {
             [t_button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
             t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
             t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-            t_button.frame = CGRectMake(0.0, 20.0, 100, 25);
+            t_button.frame = CGRectMake(0.0, 20.0, 100, 30);
             [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
             t_button.tag = JSKMenuButtonDraw;
             [t_button setTitle:NSLocalizedString(@"Draw", @"Draw") forState:UIControlStateNormal];
@@ -219,14 +219,20 @@ typedef enum {
 //        _isDrawing = NO;
 //    }];
     
-    [UIView animateWithDuration:kAnimationSpeed animations:^{
-        _circulatoryView.pointIndex++;
-    } completion:^(BOOL finished){
-        if (_circulatoryView.pointIndex <= _circulatoryView.pointCount)
-            _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
-        else
-            _isDrawing = NO;
-    }];
+    _circulatoryView.pointIndex += 10;
+    if (_circulatoryView.pointIndex <= _circulatoryView.pointCount)
+        _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
+    else
+        _isDrawing = NO;
+    
+//    [UIView animateWithDuration:kDrawSpeed animations:^{
+//        _circulatoryView.pointIndex++;
+//    } completion:^(BOOL finished){
+//        if (_circulatoryView.pointIndex <= _circulatoryView.pointCount)
+//            _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
+//        else
+//            _isDrawing = NO;
+//    }];
 }
 
 @end
