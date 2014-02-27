@@ -131,6 +131,8 @@ CGFloat const kPadHeight = 920.0;
             t_string = NSLocalizedString(@"Superior\nVena Cava", @"Superior\nVena Cava");
         if (t_system == JSKSystemInferiorVenaCava)
             t_string = NSLocalizedString(@"Inferior\nVena Cava", @"Inferior\nVena Cava");
+        if (t_system == JSKSystemGonadalArteries || t_system == JSKSystemGonadalVeins)
+            t_string = @"";
         
         NSMutableAttributedString *t_attributed = [[NSMutableAttributedString alloc] initWithString:t_string];
         NSRange t_range = NSMakeRange(0, t_string.length);
@@ -164,7 +166,7 @@ CGFloat const kPadHeight = 920.0;
             case JSKSystemSubclavianArteries:
             case JSKSystemCeliacArtery:
             case JSKSystemRenalArteries:
-            case JSKSystemTesticularisArteries:
+            case JSKSystemGonadalArteries:
             case JSKSystemIliacArtieries:
                 t_offset.width = 8;
                 t_offset.height = -11;
@@ -190,7 +192,7 @@ CGFloat const kPadHeight = 920.0;
             }
             case JSKSystemJugularVeins:
             case JSKSystemHepaticVeins:
-            case JSKSystemTesticularisVeins:
+            case JSKSystemGonadalVeins:
                 t_offset.width = ((_bufferSize.width + kVesselDiameter + _bufferSize.width) + t_attributed.size.width + 8) * -1;
                 t_offset.height = -11;
                 break;
@@ -1396,7 +1398,7 @@ CGFloat const kPadHeight = 920.0;
             break;
         }
             
-        case JSKSystemTesticularisArteries: {
+        case JSKSystemGonadalArteries: {
             CGFloat t_borderWidth = kVesselDiameter;
             UIColor *t_borderColor = _oxygenatedColor;
             
@@ -1466,7 +1468,7 @@ CGFloat const kPadHeight = 920.0;
             break;
         }
             
-        case JSKSystemTesticularisVeins: {
+        case JSKSystemGonadalVeins: {
             CGFloat t_borderWidth = kVesselDiameter;
             UIColor *t_borderColor = _deoxygenatedColor;
             
@@ -1790,16 +1792,16 @@ CGFloat const kPadHeight = 920.0;
             t_return = NSLocalizedString(@"Renal Veins", @"Renal Veins");
             break;
             
-        case JSKSystemTesticularisArteries:
-            t_return = NSLocalizedString(@"Testicularis Arteries", @"Testicularis Arteries");
+        case JSKSystemGonadalArteries:
+            t_return = NSLocalizedString(@"Gonadal Arteries", @"Gonadal Arteries");
             break;
             
         case JSKSystemLowerBody:
             t_return = NSLocalizedString(@"Lower Body", @"Lower Body");
             break;
             
-        case JSKSystemTesticularisVeins:
-            t_return = NSLocalizedString(@"Testicularis Veins", @"Testicularis Veins");
+        case JSKSystemGonadalVeins:
+            t_return = NSLocalizedString(@"Gonadal Veins", @"Gonadal Veins");
             break;
             
         case JSKSystemIliacArtieries:
@@ -1877,13 +1879,17 @@ CGFloat const kPadHeight = 920.0;
             t_return = CGPointMake([self systemOriginX], kWallThickness + kPaddingY);
             break;
             
-        case JSKSystemJugularVeins:
-            t_return = CGPointMake([self systemOriginX], _systemSize.height + kWallThickness);
+        case JSKSystemJugularVeins: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
+            t_return = CGPointMake([self systemOriginX], t_refPoint.y + _systemSize.height);
             break;
+        }
             
-        case JSKSystemSuperiorVenaCava:
-            t_return = CGPointMake(_paddingX, _systemSize.height);
+        case JSKSystemSuperiorVenaCava: {
+            CGPoint t_refPoint = [self originForSystem:JSKSystemJugularVeins];
+            t_return = CGPointMake(_paddingX, t_refPoint.y);
             break;
+        }
             
         case JSKSystemSubclavianArteries: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemCarotidArteries];
@@ -1975,7 +1981,7 @@ CGFloat const kPadHeight = 920.0;
             break;
         }
         
-        case JSKSystemTesticularisArteries: {
+        case JSKSystemGonadalArteries: {
             CGPoint t_renalVeinPoint = [self originForSystem:JSKSystemRenalVeins];
             CGPoint t_renalArteryPoint = [self originForSystem:JSKSystemRenalArteries];
             t_return = CGPointMake(t_renalArteryPoint.x, t_renalVeinPoint.y + _bufferSize.height + kVesselDiameter + _bufferSize.height);
@@ -1988,14 +1994,14 @@ CGFloat const kPadHeight = 920.0;
             break;
         }
             
-        case JSKSystemTesticularisVeins: {
+        case JSKSystemGonadalVeins: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemLowerBody];
             t_return = CGPointMake([self systemOriginX], t_refPoint.y + _systemSize.height);
             break;
         }
         
         case JSKSystemIliacArtieries: {
-            CGPoint t_refPoint = [self originForSystem:JSKSystemTesticularisArteries];
+            CGPoint t_refPoint = [self originForSystem:JSKSystemGonadalArteries];
             t_return = CGPointMake(t_refPoint.x, t_refPoint.y + _systemSize.height + _bufferSize.height);
             break;
         }
@@ -2031,8 +2037,6 @@ CGFloat const kPadHeight = 920.0;
     
     for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
         t_count += [self pointCountForSystem:t_system];
-    
-    t_count += 250;
     
 //    t_count += [self pointCountForSystem:JSKSystemHeart];
 //    t_count += [self pointCountForSystem:JSKSystemPulmonaryArtery];
