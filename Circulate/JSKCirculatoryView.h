@@ -51,4 +51,9 @@ typedef enum {
 
 @property (nonatomic, assign) BOOL labelsHidden;
 
+@property (readonly) BOOL isAnimating;
+
+- (void)startAnimating;
+- (void)stopAnimating;
+
 @end

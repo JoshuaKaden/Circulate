@@ -8,6 +8,7 @@
 
 #import "JSKViewController.h"
 #import "JSKCirculatoryView.h"
+#import "ILTranslucentView.h"
 
 CGFloat const kPadding = 47.0;
 CGFloat const kPaddingPhone = 10.0;
@@ -17,6 +18,7 @@ CGFloat const kDrawSpeed = 0.01;
 typedef enum {
     JSKMenuButtonLabels,
     JSKMenuButtonDraw,
+    JSKMenuButtonAnimate,
     JSKMenuButton_MaxValue
 } JSKMenuButton;
 
@@ -29,6 +31,7 @@ typedef enum {
     BOOL _isDrawing;
     BOOL _shouldPause;
     UIView *_menuView;
+    ILTranslucentView *_translucentView;
 }
 
 - (void)animateForLoad;
@@ -80,6 +83,16 @@ typedef enum {
         t_view;
     });
     
+    _translucentView = ({
+        ILTranslucentView *t_view = [[ILTranslucentView alloc] initWithFrame:_boundingView.bounds];
+        t_view.backgroundColor = [UIColor clearColor];
+        t_view.translucentTintColor = [UIColor clearColor];
+        t_view.translucentAlpha = 0.4;
+        t_view.alpha = 0.0;
+        [_boundingView addSubview:t_view];
+        t_view;
+    });
+    
     _startButton = ({
         UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
         t_button.frame = _boundingView.bounds;
@@ -89,14 +102,14 @@ typedef enum {
     });
     
     _menuView = ({
-        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(_boundingView.bounds.size.width - 100, 0.0, 100, 60)];
+        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(_boundingView.bounds.size.width - 100, 0.0, 100, 120)];
         
         UIButton *t_menuButton = ({
             UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
-            [t_button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            [t_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
             t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
             t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-            t_button.frame = CGRectMake(0.0, 0.0, 100, 30);
+            t_button.frame = CGRectMake(0.0, 0.0, 100, 40);
             [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
             t_button.tag = JSKMenuButtonLabels;
             [t_button setTitle:NSLocalizedString(@"Labels", @"Labels") forState:UIControlStateNormal];
@@ -106,13 +119,26 @@ typedef enum {
         
         t_menuButton = ({
             UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
-            [t_button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            [t_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
             t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
             t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-            t_button.frame = CGRectMake(0.0, 20.0, 100, 30);
+            t_button.frame = CGRectMake(0.0, 40.0, 100, 40);
             [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
             t_button.tag = JSKMenuButtonDraw;
             [t_button setTitle:NSLocalizedString(@"Draw", @"Draw") forState:UIControlStateNormal];
+            [t_view addSubview:t_button];
+            t_button;
+        });
+
+        t_menuButton = ({
+            UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
+            [t_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
+            t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+            t_button.frame = CGRectMake(0.0, 80.0, 100, 40);
+            [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
+            t_button.tag = JSKMenuButtonAnimate;
+            [t_button setTitle:NSLocalizedString(@"Animate", @"Animate") forState:UIControlStateNormal];
             [t_view addSubview:t_button];
             t_button;
         });
@@ -159,10 +185,14 @@ typedef enum {
 - (void)startButtonTapped:(id)sender
 {
     [UIView animateWithDuration:0.5 animations:^{
-        if (_menuView.alpha == 0.0)
+        if (_menuView.alpha == 0.0) {
             _menuView.alpha = 1.0;
-        else
+            _translucentView.alpha = 1.0;
+        }
+        else {
             _menuView.alpha = 0.0;
+            _translucentView.alpha = 0.0;
+        }
     }];
 }
 
@@ -176,12 +206,16 @@ typedef enum {
             break;
         case JSKMenuButtonLabels:
             break;
+        case JSKMenuButtonAnimate:
+            [_circulatoryView startAnimating];
+            break;
         case JSKMenuButton_MaxValue:
             break;
     }
     
     [UIView animateWithDuration:0.5 animations:^{
         _menuView.alpha = 0.0;
+        _translucentView.alpha = 0.0;
         if (t_type == JSKMenuButtonLabels)
             _circulatoryView.labelsHidden = !_circulatoryView.labelsHidden;
     }];
