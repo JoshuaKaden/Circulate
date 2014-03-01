@@ -44,6 +44,13 @@ typedef enum {
     JSKSystem_MaxValue
 } JSKSystem;
 
+typedef enum {
+    JSKSystemTypeArtery,
+    JSKSystemTypeVein,
+    JSKSystemTypeSystem,
+    JSKSystemType_MaxValue
+} JSKSystemType;
+
 @interface JSKCirculatoryView : UIView
 
 @property (readonly) NSUInteger pointCount;
