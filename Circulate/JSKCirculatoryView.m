@@ -34,6 +34,8 @@ CGFloat const kPadHeight = 920.0;
     BOOL _isDrawing;
     UIColor *_oxygenatedColor;
     UIColor *_deoxygenatedColor;
+    UIColor *_lightOxygenatedColor;
+    UIColor *_lightDeoxygenatedColor;
     NSMutableDictionary *_magicNumbers;
     CGSize _systemSize;
     CGSize _systemTwinSize;
@@ -56,6 +58,8 @@ CGFloat const kPadHeight = 920.0;
 - (CGFloat)systemOriginX;
 - (CGFloat)systemTwinWidth;
 - (CGFloat)systemTwinOriginX;
+- (void)addArteryAnimation:(JSKSystem)system;
+- (void)addVeinAnimation:(JSKSystem)system;
 
 @end
 
@@ -80,8 +84,10 @@ CGFloat const kPadHeight = 920.0;
         
         self.pointCount = [self calculatePointCount];
         _pointIndex = self.pointCount;
-        _oxygenatedColor = [UIColor colorWithRed:0.8 green:0.0 blue:0.0 alpha:0.5];
-        _deoxygenatedColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.8 alpha:0.5];
+        _oxygenatedColor = [UIColor colorWithRed:144.0/255.0 green:42.0/255.0 blue:42.0/255.0 alpha:1.0];
+        _deoxygenatedColor = [UIColor colorWithRed:42.0/255.0 green:42.0/255.0 blue:144.0/255.0 alpha:1.0];
+        _lightOxygenatedColor = [UIColor colorWithRed:0.9 green:0.4 blue:0.4 alpha:0.8];
+        _lightDeoxygenatedColor = [UIColor colorWithRed:0.4 green:0.4 blue:0.9 alpha:0.8];
         
         _magicNumbers = [[NSMutableDictionary alloc] init];
         for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++)
@@ -157,39 +163,143 @@ CGFloat const kPadHeight = 920.0;
         t_layer;
     });
     
+    // Heart
     CAShapeLayer *t_layer = [self layerForSystem:JSKSystemHeart];
-    
     CABasicAnimation *t_animation = ({
         CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        t_animation.duration = 1.0;
-        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
-        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
-        t_animation;
-    });
-    [t_layer addAnimation:t_animation forKey:@"opacity"];
-    
-    [_floorLayer addSublayer:t_layer];
-    
-    t_layer = [self layerForSystem:JSKSystemPulmonaryArtery];
-    t_layer.strokeColor = [UIColor colorWithRed:0.7 green:0.7 blue:0.9 alpha:0.8].CGColor;
-    t_animation = ({
-        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
         t_animation.duration = 2.0;
         t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
         t_animation.toValue = [NSNumber numberWithFloat:1.0f];
+        t_animation.autoreverses = YES;
+        t_animation.repeatCount = HUGE_VALF;
         t_animation;
     });
-    [t_layer addAnimation:t_animation forKey:@"strokeEnd"];
-    
+    [t_layer addAnimation:t_animation forKey:@"pulseIn"];
     [_floorLayer addSublayer:t_layer];
+    
+    for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++) {
+        switch (t_system) {
+            case JSKSystemAorta:
+            case JSKSystemCarotidArteries:
+            case JSKSystemCeliacArtery:
+            case JSKSystemGonadalArteries:
+            case JSKSystemHepaticArtery:
+            case JSKSystemIliacArtieries:
+            case JSKSystemPulmonaryArtery:
+            case JSKSystemRenalArteries:
+            case JSKSystemSubclavianArteries:
+                [self addArteryAnimation:t_system];
+                break;
+            case JSKSystemGonadalVeins:
+            case JSKSystemHepaticPortalVein:
+            case JSKSystemHepaticVeins:
+            case JSKSystemIliacVeins:
+            case JSKSystemInferiorVenaCava:
+            case JSKSystemJugularVeins:
+            case JSKSystemPulmonaryVein:
+            case JSKSystemRenalVeins:
+            case JSKSystemSubclavianVeins:
+                [self addVeinAnimation:t_system];
+                break;
+            default:
+                break;
+        }
+    }
+    
+    
+    
 }
 
 - (void)stopAnimating
 {
-    
+    for (CALayer *t_layer in _floorLayer.sublayers)
+        [t_layer removeAllAnimations];
+    [_floorLayer removeFromSuperlayer];
+    _isAnimating = NO;
 }
 
 #pragma mark - Private Methods
+
+- (void)addArteryAnimation:(JSKSystem)system
+{
+    NSTimeInterval t_time = CACurrentMediaTime();
+    CGFloat t_speed = 2.0;
+    UIColor *t_color1 = _lightOxygenatedColor;
+    UIColor *t_color2 = _oxygenatedColor;
+    
+    if (system == JSKSystemPulmonaryArtery) {
+        t_color1 = _lightDeoxygenatedColor;
+        t_color2 = _deoxygenatedColor;
+    }
+    
+    CAShapeLayer *t_layer = [self layerForSystem:system];
+    t_layer.strokeColor = t_color1.CGColor;
+    CABasicAnimation *t_animation = ({
+        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        t_animation.duration = t_speed;
+        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
+        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
+        t_animation.repeatCount = HUGE_VALF;
+        t_animation;
+    });
+    [t_layer addAnimation:t_animation forKey:@"flow01"];
+    [_floorLayer addSublayer:t_layer];
+    
+    t_layer = [self layerForSystem:system];
+    t_layer.strokeColor = t_color2.CGColor;
+    t_animation = ({
+        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        t_animation.beginTime = t_time + 0.08;
+        t_animation.duration = t_speed;
+        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
+        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
+        t_animation.repeatCount = HUGE_VALF;
+        t_animation;
+    });
+    [t_layer addAnimation:t_animation forKey:@"flow02"];
+    [_floorLayer addSublayer:t_layer];
+}
+
+- (void)addVeinAnimation:(JSKSystem)system
+{
+    NSTimeInterval t_time = CACurrentMediaTime();
+    CGFloat t_speed = 2.0;
+    
+    UIColor *t_color1 = _lightDeoxygenatedColor;
+    UIColor *t_color2 = _deoxygenatedColor;
+    
+    if (system == JSKSystemPulmonaryVein) {
+        t_color1 = _lightOxygenatedColor;
+        t_color2 = _oxygenatedColor;
+    }
+    
+    CAShapeLayer *t_layer = [self layerForSystem:system];
+    t_layer.strokeColor = [UIColor colorWithRed:0.9 green:0.4 blue:0.4 alpha:0.8].CGColor;
+    CABasicAnimation *t_animation = ({
+        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        t_animation.duration = t_speed;
+        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
+        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
+        t_animation.repeatCount = HUGE_VALF;
+        t_animation;
+    });
+    [t_layer addAnimation:t_animation forKey:@"flow01"];
+    [_floorLayer addSublayer:t_layer];
+    
+    t_layer = [self layerForSystem:system];
+    t_layer.strokeColor = _deoxygenatedColor.CGColor;
+    t_animation = ({
+        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        t_animation.beginTime = t_time + 0.1;
+        t_animation.duration = t_speed;
+        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
+        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
+        t_animation.repeatCount = HUGE_VALF;
+        t_animation;
+    });
+    [t_layer addAnimation:t_animation forKey:@"flow02"];
+    [_floorLayer addSublayer:t_layer];
+}
 
 - (void)drawLabels:(CGRect)rect
 {
@@ -210,7 +320,7 @@ CGFloat const kPadHeight = 920.0;
         NSMutableAttributedString *t_attributed = [[NSMutableAttributedString alloc] initWithString:t_string];
         NSRange t_range = NSMakeRange(0, t_string.length);
         [t_attributed addAttribute:NSFontAttributeName
-                      value:[UIFont fontWithName:@"Gill Sans" size:16]
+                      value:[UIFont fontWithName:@"Gill Sans" size:14]
                       range:t_range];
         if (self.bounds.size.width <= kPhoneWidth)
             [t_attributed addAttribute:NSFontAttributeName
@@ -234,6 +344,7 @@ CGFloat const kPadHeight = 920.0;
                 break;
             case JSKSystemPulmonaryVein:
                 t_offset.width = 6;
+                t_offset.height = 2;
                 break;
             case JSKSystemCarotidArteries:
             case JSKSystemSubclavianArteries:
@@ -275,7 +386,7 @@ CGFloat const kPadHeight = 920.0;
                 CGPoint t_refPoint = [self originForSystem:JSKSystemSuperiorVenaCava];
                 t_origin.x = t_refPoint.x;
                 t_offset.width = (t_attributed.size.width + 5) * -1;
-                t_offset.height = 10;
+                t_offset.height = 11;
                 break;
             }
         }
@@ -1844,6 +1955,44 @@ CGFloat const kPadHeight = 920.0;
             t_return = t_path;
             break;
         }
+        
+        case JSKSystemLeftLung:
+        case JSKSystemRightLung:
+            break;
+            
+        case JSKSystemPulmonaryVein:
+            break;
+            
+        case JSKSystemAorta: {
+            CGFloat t_borderWidth = kVesselDiameter;
+            CGPoint t_origin = [self originForSystem:system];
+            CGPoint t_lastPoint = t_origin;
+            
+            UIBezierPath *t_path = [UIBezierPath bezierPath];
+            t_path.lineWidth = t_borderWidth;
+            [t_path moveToPoint:CGPointMake(t_origin.x, t_origin.y)];
+            
+            CGFloat t_delta = kVesselDiameter + _bufferSize.width + _bufferSize.width;
+            CGPoint t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y);
+            t_lastPoint = t_point;
+            [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
+            
+            CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
+            t_refPoint.x += (_systemSize.width + kVesselDiameter + _bufferSize.width);
+            t_refPoint.y += (_systemSize.height);
+            CGFloat t_minY = t_refPoint.y;
+            CGFloat t_maxY = [self originForSystem:JSKSystemIliacArtieries].y;
+            t_delta = t_maxY - t_origin.y;
+            t_point = CGPointMake(t_lastPoint.x, t_minY);
+            CGPoint t_point2 = CGPointMake(t_lastPoint.x, t_maxY);
+            [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
+            [t_path moveToPoint:CGPointMake(t_lastPoint.x, t_lastPoint.y)];
+            [t_path addLineToPoint:CGPointMake(t_point2.x, t_point2.y)];
+            t_lastPoint = t_point;
+            
+            t_return = t_path;
+            break;
+        }
             
         case JSKSystem_MaxValue:
             break;
@@ -1859,8 +2008,8 @@ CGFloat const kPadHeight = 920.0;
     switch (system) {
             
         case JSKSystemHeart: {
-            UIColor *t_strokeColor = [UIColor whiteColor];
-            UIColor *t_fillColor = [UIColor colorWithRed:0.7 green:0.5 blue:0.5 alpha:0.5];
+            UIColor *t_strokeColor = [UIColor clearColor];
+            UIColor *t_fillColor = [UIColor colorWithRed:0.5 green:0.4 blue:0.4 alpha:0.4];
             UIBezierPath *t_path = [self pathForSystem:system];
             t_return = ({
                 CAShapeLayer *t_layer = [CAShapeLayer layer];
@@ -1873,21 +2022,35 @@ CGFloat const kPadHeight = 920.0;
             break;
         }
             
-        case JSKSystemPulmonaryArtery: {
-            UIColor *t_strokeColor = [UIColor whiteColor];
-            UIColor *t_fillColor = [UIColor clearColor];
+        case JSKSystemAorta:
+        case JSKSystemCarotidArteries:
+        case JSKSystemCeliacArtery:
+        case JSKSystemGonadalArteries:
+        case JSKSystemHepaticArtery:
+        case JSKSystemIliacArtieries:
+        case JSKSystemPulmonaryArtery:
+        case JSKSystemRenalArteries:
+        case JSKSystemSubclavianArteries:
+        case JSKSystemGonadalVeins:
+        case JSKSystemHepaticPortalVein:
+        case JSKSystemHepaticVeins:
+        case JSKSystemIliacVeins:
+        case JSKSystemInferiorVenaCava:
+        case JSKSystemJugularVeins:
+        case JSKSystemPulmonaryVein:
+        case JSKSystemRenalVeins:
+        case JSKSystemSubclavianVeins: {
             UIBezierPath *t_path = [self pathForSystem:system];
             t_return = ({
                 CAShapeLayer *t_layer = [CAShapeLayer layer];
                 t_layer.lineWidth = t_path.lineWidth;
-                t_layer.strokeColor = t_strokeColor.CGColor;
-                t_layer.fillColor = t_fillColor.CGColor;
+                t_layer.fillColor = [UIColor clearColor].CGColor;
                 t_layer.path = t_path.CGPath;
                 t_layer;
             });
             break;
         }
-            
+        
         case JSKSystem_MaxValue:
             break;
     }
