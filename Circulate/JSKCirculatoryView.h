@@ -53,9 +53,6 @@ typedef enum {
 
 @interface JSKCirculatoryView : UIView
 
-@property (readonly) NSUInteger pointCount;
-@property (nonatomic, assign) NSUInteger pointIndex;
-
 @property (nonatomic, assign) BOOL labelsHidden;
 
 @property (readonly) BOOL isAnimating;

@@ -27,18 +27,13 @@ typedef enum {
     UIView *_boundingView;
     JSKCirculatoryView *_circulatoryView;
     UIButton *_startButton;
-    NSTimer *_timer;
-    BOOL _isDrawing;
-    BOOL _shouldPause;
     UIView *_menuView;
     ILTranslucentView *_translucentView;
 }
 
 - (void)animateForLoad;
 - (void)startButtonTapped:(id)sender;
-- (void)timerFired:(id)sender;
 - (void)menuViewButtonTouched:(UIButton *)sender;
-- (void)draw;
 
 @end
 
@@ -78,7 +73,6 @@ typedef enum {
     _circulatoryView = ({
         JSKCirculatoryView *t_view = [[JSKCirculatoryView alloc] initWithFrame:_boundingView.bounds];
         t_view.backgroundColor = _boundingView.backgroundColor;
-//        t_view.pointIndex = 0.0;
         [_boundingView addSubview:t_view];
         t_view;
     });
@@ -202,12 +196,15 @@ typedef enum {
     
     switch (t_type) {
         case JSKMenuButtonDraw:
-            [self draw];
+//            [_circulatoryView draw];
             break;
         case JSKMenuButtonLabels:
             break;
         case JSKMenuButtonAnimate:
-            [_circulatoryView startAnimating];
+            if (_circulatoryView.isAnimating)
+                [_circulatoryView stopAnimating];
+            else
+                [_circulatoryView startAnimating];
             break;
         case JSKMenuButton_MaxValue:
             break;
@@ -219,54 +216,6 @@ typedef enum {
         if (t_type == JSKMenuButtonLabels)
             _circulatoryView.labelsHidden = !_circulatoryView.labelsHidden;
     }];
-}
-
-- (void)draw
-{
-    if (_isDrawing) {
-        //        _shouldPause = !_shouldPause;
-        //        if (_shouldPause)
-        return;
-    }
-    _isDrawing = YES;
-    
-    _circulatoryView.labelsHidden = YES;
-    
-    if (_circulatoryView.pointIndex >= _circulatoryView.pointCount - 1)
-        _circulatoryView.pointIndex = 0;
-    _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
-}
-
-- (void)timerFired:(id)sender
-{
-    [_timer invalidate];
-    _timer = nil;
-    
-//    if (_shouldPause)
-//        return;
-    
-//    NSUInteger t_count = _circulatoryView.pointCount;
-//    [UIView animateWithDuration:2.0 animations:^{
-//        _circulatoryView.pointIndex = t_count - 1;
-//        [_circulatoryView setNeedsDisplay];
-//    } completion:^(BOOL finished){
-//        _isDrawing = NO;
-//    }];
-    
-    _circulatoryView.pointIndex += 10;
-    if (_circulatoryView.pointIndex <= _circulatoryView.pointCount)
-        _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
-    else
-        _isDrawing = NO;
-    
-//    [UIView animateWithDuration:kDrawSpeed animations:^{
-//        _circulatoryView.pointIndex++;
-//    } completion:^(BOOL finished){
-//        if (_circulatoryView.pointIndex <= _circulatoryView.pointCount)
-//            _timer = [NSTimer scheduledTimerWithTimeInterval:kDrawSpeed target:self selector:@selector(timerFired:) userInfo:nil repeats:NO];
-//        else
-//            _isDrawing = NO;
-//    }];
 }
 
 @end
