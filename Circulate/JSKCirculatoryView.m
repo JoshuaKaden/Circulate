@@ -85,7 +85,7 @@ CGFloat const kPadHeight = 920.0;
         _oxygenatedColor = [UIColor colorWithRed:144.0/255.0 green:42.0/255.0 blue:42.0/255.0 alpha:1.0];
         _deoxygenatedColor = [UIColor colorWithRed:42.0/255.0 green:42.0/255.0 blue:144.0/255.0 alpha:1.0];
         _lightOxygenatedColor = [UIColor colorWithRed:0.9 green:0.4 blue:0.4 alpha:0.9];
-        _lightDeoxygenatedColor = [UIColor colorWithRed:0.4 green:0.4 blue:0.9 alpha:0.9];
+        _lightDeoxygenatedColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.9 alpha:0.9];
         _systemWallColor = [UIColor lightGrayColor];
         _systemFillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
     }
@@ -414,12 +414,12 @@ CGFloat const kPadHeight = 920.0;
                 break;
             }
             case JSKSystemPulmonaryArtery:
-                t_offset.width = -18;
+                t_offset.width = -17;
                 t_offset.height = -34;
                 break;
             case JSKSystemPulmonaryVein:
-                t_offset.width = 6;
-                t_offset.height = 2;
+                t_offset.width = 8;
+                t_offset.height = 4;
                 break;
             case JSKSystemCarotidArteries:
             case JSKSystemSubclavianArteries:
@@ -428,7 +428,7 @@ CGFloat const kPadHeight = 920.0;
             case JSKSystemGonadalArteries:
             case JSKSystemIliacArtieries:
                 t_offset.width = 8;
-                t_offset.height = -11;
+                t_offset.height = -10;
                 break;
             case JSKSystemHepaticArtery:
                 t_offset.width = t_attributed.size.width * -1;
@@ -440,30 +440,40 @@ CGFloat const kPadHeight = 920.0;
 //                [t_attributed addAttribute:NSParagraphStyleAttributeName value:t_style range:t_range];
                 CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
                 t_offset.width = (t_attributed.size.width + 6) * -1;
-                t_origin.y = t_refPoint.y - 5;
+                t_origin.y = t_refPoint.y - 4;
                 break;
             }
             case JSKSystemInferiorVenaCava: {
                 CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
                 t_offset.width = (t_attributed.size.width + 6) * -1;
-                t_origin.y = t_refPoint.y + t_attributed.size.height + (t_attributed.size.height / 2) + 5;
+                t_origin.y = t_refPoint.y + t_attributed.size.height + (t_attributed.size.height / 2) + 13;
                 break;
             }
             case JSKSystemJugularVeins:
             case JSKSystemHepaticVeins:
             case JSKSystemGonadalVeins:
-                t_offset.width = ((_bufferSize.width + kVesselDiameter + _bufferSize.width) + t_attributed.size.width + 8) * -1;
-                t_offset.height = -11;
+                t_offset.width = ((_bufferSize.width + kVesselDiameter + _bufferSize.width) + t_attributed.size.width + 10) * -1;
+                t_offset.height = -9;
                 break;
             case JSKSystemSubclavianVeins:
-            case JSKSystemRenalVeins:
+            case JSKSystemRenalVeins: {
+                CGPoint t_refPoint = [self originForSystem:JSKSystemSuperiorVenaCava];
+                t_origin.x = t_refPoint.x;
+                t_offset.width = (t_attributed.size.width + 9) * -1;
+                t_offset.height = 14;
+                break;
+            }
             case JSKSystemIliacVeins: {
                 CGPoint t_refPoint = [self originForSystem:JSKSystemSuperiorVenaCava];
                 t_origin.x = t_refPoint.x;
-                t_offset.width = (t_attributed.size.width + 5) * -1;
+                t_offset.width = (t_attributed.size.width + 9) * -1;
                 t_offset.height = 11;
                 break;
             }
+            case JSKSystemHepaticPortalVein:
+                t_offset.width = 11;
+                t_offset.height = 8;
+                break;
             default:
                 break;
         }
@@ -515,18 +525,18 @@ CGFloat const kPadHeight = 920.0;
             t_lastPoint = t_point;
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
             
-            t_delta = _bufferSize.height + kVesselDiameter;
+            t_delta = _bufferSize.height + kVesselDiameter - kWallThickness;
             t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
             t_lastPoint = t_point;
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
             
             t_delta = _systemTwinSize.width + _bufferSize.width;
-            t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y - (_bufferSize.height + kVesselDiameter));
+            t_point = CGPointMake(t_lastPoint.x + t_delta, t_lastPoint.y - (_bufferSize.height + kVesselDiameter - kWallThickness));
             [t_path moveToPoint:CGPointMake(t_lastPoint.x, t_point.y)];
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
             t_lastPoint = t_point;
             
-            t_delta = _bufferSize.height + kVesselDiameter;
+            t_delta = _bufferSize.height + kVesselDiameter - kWallThickness;
             t_point = CGPointMake(t_lastPoint.x, t_lastPoint.y + t_delta);
             t_lastPoint = t_point;
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
@@ -614,7 +624,7 @@ CGFloat const kPadHeight = 920.0;
             t_refPoint.x += (_systemSize.width + kVesselDiameter + _bufferSize.width);
             t_refPoint.y += (_systemSize.height);
             CGFloat t_minY = t_refPoint.y;
-            CGFloat t_maxY = [self originForSystem:JSKSystemIliacArtieries].y;
+            CGFloat t_maxY = [self originForSystem:JSKSystemIliacArtieries].y + (kVesselDiameter / 2.0);
             t_delta = t_maxY - t_origin.y;
             t_point = CGPointMake(t_lastPoint.x, t_minY);
             CGPoint t_point2 = CGPointMake(t_lastPoint.x, t_maxY);
@@ -636,7 +646,7 @@ CGFloat const kPadHeight = 920.0;
             t_path.lineWidth = t_borderWidth;
             [t_path moveToPoint:CGPointMake(t_origin.x, t_origin.y)];
             
-            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
+            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width) + (kVesselDiameter / 2.0);
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
             
@@ -1109,7 +1119,7 @@ CGFloat const kPadHeight = 920.0;
             t_lastPoint = t_point;
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
             
-            t_delta = t_lastPoint.x - _paddingX;
+            t_delta = t_lastPoint.x - _paddingX + (kVesselDiameter / 2.0);
             t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
             t_lastPoint = t_point;
@@ -1362,7 +1372,7 @@ CGFloat const kPadHeight = 920.0;
         
         case JSKSystemCarotidArteries: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_return = CGPointMake(t_refPoint.x + _systemSize.width + (kVesselDiameter + _bufferSize.width + _bufferSize.width), t_refPoint.y + _systemSize.height);
+            t_return = CGPointMake(t_refPoint.x + _systemSize.width + (kVesselDiameter / 2.0) + (kVesselDiameter + _bufferSize.width + _bufferSize.width), t_refPoint.y + _systemSize.height);
             break;
         }
     
@@ -1378,7 +1388,7 @@ CGFloat const kPadHeight = 920.0;
             
         case JSKSystemSuperiorVenaCava: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemJugularVeins];
-            t_return = CGPointMake(_paddingX, t_refPoint.y);
+            t_return = CGPointMake(_paddingX, t_refPoint.y - (kVesselDiameter / 2.0));
             break;
         }
             
