@@ -23,6 +23,7 @@ CGFloat const kWallThickness = 1.0;
 CGFloat const kVesselDiameter = 3.0;
 CGFloat const kVesselOffset = 0.0;
 CGFloat const kVesselFlowSpeed = 0.1;
+CGFloat const kAnimationDuration = 2.0;
 
 CGFloat const kPhoneWidth = 320.0;
 CGFloat const kPhoneHeight = 480.0;
@@ -138,30 +139,23 @@ CGFloat const kPadHeight = 920.0;
         t_layer;
     });
     
-    NSTimeInterval t_time = CACurrentMediaTime();
-    CGFloat t_duration = 5.0;
+    CGFloat t_duration = kAnimationDuration;
     
     // Heart
     CABasicAnimation *t_pulseAnimation1 = ({
         CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        t_animation.beginTime = t_time + 1.0;
-        t_animation.duration = 0.5;
+        t_animation.duration = t_duration / 4.0;
         t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
         t_animation.toValue = [NSNumber numberWithFloat:1.0f];
         t_animation.fillMode = kCAFillModeBackwards;
-//        t_animation.autoreverses = YES;
-        t_animation.repeatCount = HUGE_VALF;
         t_animation;
     });
     
     CABasicAnimation *t_pulseAnimation2 = ({
         CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-//        t_animation.beginTime = t_time + 1.0;
-//        t_animation.timeOffset = t_time + 0.5;
-//        t_animation.duration = 1.5;
-//        t_animation.fromValue = [NSNumber numberWithFloat:1.0f];
-//        t_animation.toValue = [NSNumber numberWithFloat:0.0f];
-//        t_animation.repeatCount = HUGE_VALF;
+        t_animation.duration = t_duration;
+        t_animation.fromValue = [NSNumber numberWithFloat:1.0f];
+        t_animation.toValue = [NSNumber numberWithFloat:0.0f];
         t_animation;
     });
     
@@ -170,14 +164,14 @@ CGFloat const kPadHeight = 920.0;
     t_group.delegate = self;
     t_group.duration = t_duration;
     t_group.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
-    t_group.animations = @[t_pulseAnimation1]; //, t_pulseAnimation2];
+    t_group.animations = @[t_pulseAnimation1, t_pulseAnimation2];
     
     CAShapeLayer *t_layer = [self layerForSystem:JSKSystemHeart];
     UIColor *t_strokeColor = [UIColor clearColor];
     UIColor *t_fillColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:0.4];
     t_layer.strokeColor = t_strokeColor.CGColor;
     t_layer.fillColor = t_fillColor.CGColor;
-    [t_layer addAnimation:t_group forKey:@"opacity"];
+    [t_layer addAnimation:t_group forKey:@"pulse"];
     [_floorLayer addSublayer:t_layer];
     
     // Arteries and veins
@@ -303,7 +297,7 @@ CGFloat const kPadHeight = 920.0;
 - (void)addArteryAnimation:(JSKSystem)system
 {
     NSTimeInterval t_time = CACurrentMediaTime();
-    CGFloat t_speed = 2.0;
+    CGFloat t_speed = kAnimationDuration;
     CGFloat t_offset = kVesselFlowSpeed;
     UIColor *t_color1 = _lightOxygenatedColor;
     UIColor *t_color2 = _oxygenatedColor;
@@ -344,7 +338,7 @@ CGFloat const kPadHeight = 920.0;
 - (void)addVeinAnimation:(JSKSystem)system
 {
     NSTimeInterval t_time = CACurrentMediaTime();
-    CGFloat t_speed = 2.0;
+    CGFloat t_speed = kAnimationDuration;
     CGFloat t_offset = kVesselFlowSpeed;
     UIColor *t_color1 = _lightDeoxygenatedColor;
     UIColor *t_color2 = _deoxygenatedColor;
