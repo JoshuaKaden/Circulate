@@ -142,9 +142,9 @@ CGFloat const kPadHeight = 920.0;
     CGFloat t_duration = kAnimationDuration;
     
     // Heart
+    // Pulse animation.
     CABasicAnimation *t_pulseAnimation1 = ({
         CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        t_animation.duration = t_duration / 4.0;
         t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
         t_animation.toValue = [NSNumber numberWithFloat:1.0f];
         t_animation.fillMode = kCAFillModeBackwards;
@@ -153,7 +153,6 @@ CGFloat const kPadHeight = 920.0;
     
     CABasicAnimation *t_pulseAnimation2 = ({
         CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        t_animation.duration = t_duration;
         t_animation.fromValue = [NSNumber numberWithFloat:1.0f];
         t_animation.toValue = [NSNumber numberWithFloat:0.0f];
         t_animation;
@@ -171,6 +170,7 @@ CGFloat const kPadHeight = 920.0;
     UIColor *t_fillColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:0.4];
     t_layer.strokeColor = t_strokeColor.CGColor;
     t_layer.fillColor = t_fillColor.CGColor;
+    t_layer.opacity = 0.0;
     [t_layer addAnimation:t_group forKey:@"pulse"];
     [_floorLayer addSublayer:t_layer];
     
@@ -235,6 +235,7 @@ CGFloat const kPadHeight = 920.0;
         return;
     
     UIBezierPath *t_path = [self pathForSystem:system];
+    t_path.lineJoinStyle = kCGLineJoinRound;
     if (!t_path)
         return;
     
@@ -296,42 +297,45 @@ CGFloat const kPadHeight = 920.0;
 
 - (void)addArteryAnimation:(JSKSystem)system
 {
-    NSTimeInterval t_time = CACurrentMediaTime();
-    CGFloat t_speed = kAnimationDuration;
-    CGFloat t_offset = kVesselFlowSpeed;
+    CGFloat t_duration = kAnimationDuration;
     UIColor *t_color1 = _lightOxygenatedColor;
-    UIColor *t_color2 = _oxygenatedColor;
     
-    if (system == JSKSystemPulmonaryArtery) {
+    if (system == JSKSystemPulmonaryArtery)
         t_color1 = _lightDeoxygenatedColor;
-        t_color2 = _deoxygenatedColor;
-    }
+    
+    // Pulse animation.
+    CABasicAnimation *t_pulseAnimation3 = ({
+        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+        t_animation.fromValue = [NSNumber numberWithFloat:0.2f];
+        t_animation.toValue = [NSNumber numberWithFloat:0.0f];
+        t_animation;
+    });
+    
+    CABasicAnimation *t_pulseAnimation1 = ({
+        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
+        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
+        t_animation;
+    });
+    
+    CABasicAnimation *t_pulseAnimation2 = ({
+        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+        t_animation.fromValue = [NSNumber numberWithFloat:1.0f];
+        t_animation.toValue = [NSNumber numberWithFloat:0.2f];
+        t_animation;
+    });
+
+    CAAnimationGroup *t_group = [CAAnimationGroup animation];
+    t_group.repeatCount = HUGE_VALF;
+    t_group.delegate = self;
+    t_group.duration = t_duration;
+    t_group.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+    t_group.animations = @[t_pulseAnimation3, t_pulseAnimation1, t_pulseAnimation2];
     
     CAShapeLayer *t_layer = [self layerForSystem:system];
-    t_layer.strokeColor = t_color1.CGColor;
-    CABasicAnimation *t_animation = ({
-        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-        t_animation.duration = t_speed;
-        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
-        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
-        t_animation.repeatCount = HUGE_VALF;
-        t_animation;
-    });
-    [t_layer addAnimation:t_animation forKey:@"flow01"];
-    [_floorLayer addSublayer:t_layer];
-    
-    t_layer = [self layerForSystem:system];
-    t_layer.strokeColor = t_color2.CGColor;
-    t_animation = ({
-        CABasicAnimation *t_animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-        t_animation.beginTime = t_time + t_offset;
-        t_animation.duration = t_speed;
-        t_animation.fromValue = [NSNumber numberWithFloat:0.0f];
-        t_animation.toValue = [NSNumber numberWithFloat:1.0f];
-        t_animation.repeatCount = HUGE_VALF;
-        t_animation;
-    });
-    [t_layer addAnimation:t_animation forKey:@"flow02"];
+    UIColor *t_strokeColor = t_color1;
+    t_layer.strokeColor = t_strokeColor.CGColor;
+    [t_layer addAnimation:t_group forKey:@"pulse"];
     [_floorLayer addSublayer:t_layer];
 }
 
@@ -439,13 +443,13 @@ CGFloat const kPadHeight = 920.0;
 //                t_style.alignment = NSTextAlignmentRight;
 //                [t_attributed addAttribute:NSParagraphStyleAttributeName value:t_style range:t_range];
                 CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-                t_offset.width = (t_attributed.size.width + 6) * -1;
+                t_offset.width = (t_attributed.size.width + 8) * -1;
                 t_origin.y = t_refPoint.y - 4;
                 break;
             }
             case JSKSystemInferiorVenaCava: {
                 CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
-                t_offset.width = (t_attributed.size.width + 6) * -1;
+                t_offset.width = (t_attributed.size.width + 8) * -1;
                 t_origin.y = t_refPoint.y + t_attributed.size.height + (t_attributed.size.height / 2) + 13;
                 break;
             }
@@ -903,6 +907,7 @@ CGFloat const kPadHeight = 920.0;
             
             UIBezierPath *t_path = [UIBezierPath bezierPath];
             t_path.lineWidth = t_borderWidth;
+            t_path.lineCapStyle = kCGLineCapRound;
             [t_path moveToPoint:CGPointMake(t_origin.x, t_origin.y)];
             
             CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
