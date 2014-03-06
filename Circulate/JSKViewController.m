@@ -8,7 +8,6 @@
 
 #import "JSKViewController.h"
 #import "JSKCirculatoryView.h"
-#import "ILTranslucentView.h"
 
 CGFloat const kPadding = 47.0;
 CGFloat const kPaddingPhone = 10.0;
@@ -17,7 +16,7 @@ CGFloat const kDrawSpeed = 0.01;
 
 typedef enum {
     JSKMenuButtonLabels,
-    JSKMenuButtonDraw,
+    JSKMenuButtonAbout,
     JSKMenuButtonAnimate,
     JSKMenuButton_MaxValue
 } JSKMenuButton;
@@ -28,7 +27,7 @@ typedef enum {
     JSKCirculatoryView *_circulatoryView;
     UIButton *_startButton;
     UIView *_menuView;
-    ILTranslucentView *_translucentView;
+    UIView *_translucentView;
 }
 
 - (void)animateForLoad;
@@ -64,7 +63,7 @@ typedef enum {
     });
     
     _boundingView = ({
-        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(5.0, 5.0, _framingView.bounds.size.width - 10.0, _framingView.bounds.size.height - 10.0)];
+        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(5.0, 20.0, _framingView.bounds.size.width - 10.0, _framingView.bounds.size.height - 10.0)];
         t_view.backgroundColor = _framingView.backgroundColor;
         [_framingView addSubview:t_view];
         t_view;
@@ -78,32 +77,30 @@ typedef enum {
     });
     
     _translucentView = ({
-        ILTranslucentView *t_view = [[ILTranslucentView alloc] initWithFrame:_boundingView.bounds];
-        t_view.backgroundColor = [UIColor clearColor];
-        t_view.translucentTintColor = [UIColor clearColor];
-        t_view.translucentAlpha = 0.4;
+        UIView *t_view = [[UIView alloc] initWithFrame:_framingView.bounds];
+        t_view.backgroundColor = [UIColor grayColor];
         t_view.alpha = 0.0;
-        [_boundingView addSubview:t_view];
+        [_framingView addSubview:t_view];
         t_view;
     });
     
     _startButton = ({
         UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
-        t_button.frame = _boundingView.bounds;
+        t_button.frame = _framingView.bounds;
         [t_button addTarget:self action:@selector(startButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-        [_boundingView addSubview:t_button];
+        [_framingView addSubview:t_button];
         t_button;
     });
     
     _menuView = ({
-        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(_boundingView.bounds.size.width - 100, 0.0, 100, 120)];
+        UIView *t_view = [[UIView alloc] initWithFrame:CGRectMake(_framingView.bounds.size.width - 180, 22, 150, 120)];
         
         UIButton *t_menuButton = ({
             UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
             [t_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
+            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:26];
             t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-            t_button.frame = CGRectMake(0.0, 0.0, 100, 40);
+            t_button.frame = CGRectMake(0.0, 0.0, 150, 40);
             [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
             t_button.tag = JSKMenuButtonLabels;
             [t_button setTitle:NSLocalizedString(@"Labels", @"Labels") forState:UIControlStateNormal];
@@ -114,12 +111,12 @@ typedef enum {
         t_menuButton = ({
             UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
             [t_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
+            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:26];
             t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-            t_button.frame = CGRectMake(0.0, 40.0, 100, 40);
+            t_button.frame = CGRectMake(0.0, 40.0, 150, 40);
             [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
-            t_button.tag = JSKMenuButtonDraw;
-            [t_button setTitle:NSLocalizedString(@"Draw", @"Draw") forState:UIControlStateNormal];
+            t_button.tag = JSKMenuButtonAnimate;
+            [t_button setTitle:NSLocalizedString(@"Animate", @"Animate") forState:UIControlStateNormal];
             [t_view addSubview:t_button];
             t_button;
         });
@@ -127,18 +124,18 @@ typedef enum {
         t_menuButton = ({
             UIButton *t_button = [UIButton buttonWithType:UIButtonTypeCustom];
             [t_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:16];
+            t_button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:26];
             t_button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-            t_button.frame = CGRectMake(0.0, 80.0, 100, 40);
+            t_button.frame = CGRectMake(0.0, 80.0, 150, 40);
             [t_button addTarget:self action:@selector(menuViewButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
-            t_button.tag = JSKMenuButtonAnimate;
-            [t_button setTitle:NSLocalizedString(@"Animate", @"Animate") forState:UIControlStateNormal];
+            t_button.tag = JSKMenuButtonAbout;
+            [t_button setTitle:NSLocalizedString(@"About", @"About") forState:UIControlStateNormal];
             [t_view addSubview:t_button];
             t_button;
         });
-        
+
         t_view.alpha = 0.0;
-        [_boundingView addSubview:t_view];
+        [_framingView addSubview:t_view];
         t_view;
     });
     
@@ -181,7 +178,7 @@ typedef enum {
     [UIView animateWithDuration:0.5 animations:^{
         if (_menuView.alpha == 0.0) {
             _menuView.alpha = 1.0;
-            _translucentView.alpha = 1.0;
+            _translucentView.alpha = 0.8;
         }
         else {
             _menuView.alpha = 0.0;
@@ -195,8 +192,8 @@ typedef enum {
     JSKMenuButton t_type = (JSKMenuButton)sender.tag;
     
     switch (t_type) {
-        case JSKMenuButtonDraw:
-//            [_circulatoryView draw];
+        case JSKMenuButtonAbout:
+            
             break;
         case JSKMenuButtonLabels:
             break;

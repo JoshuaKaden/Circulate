@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9301575618C0F59F00270699 /* ILTranslucentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9301575518C0F59F00270699 /* ILTranslucentView.m */; };
 		9320A84B18AC12C700BBF1FB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9320A84A18AC12C700BBF1FB /* Foundation.framework */; };
 		9320A84D18AC12C700BBF1FB /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9320A84C18AC12C700BBF1FB /* CoreGraphics.framework */; };
 		9320A84F18AC12C800BBF1FB /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9320A84E18AC12C800BBF1FB /* UIKit.framework */; };
@@ -37,8 +36,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9301575418C0F59F00270699 /* ILTranslucentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ILTranslucentView.h; sourceTree = "<group>"; };
-		9301575518C0F59F00270699 /* ILTranslucentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ILTranslucentView.m; sourceTree = "<group>"; };
 		9320A84718AC12C700BBF1FB /* Circulate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Circulate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9320A84A18AC12C700BBF1FB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		9320A84C18AC12C700BBF1FB /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -130,8 +127,6 @@
 				9320A85118AC12C800BBF1FB /* Supporting Files */,
 				9320A88218AC13A000BBF1FB /* JSKCirculatoryView.h */,
 				9320A88318AC13A000BBF1FB /* JSKCirculatoryView.m */,
-				9301575418C0F59F00270699 /* ILTranslucentView.h */,
-				9301575518C0F59F00270699 /* ILTranslucentView.m */,
 			);
 			path = Circulate;
 			sourceTree = "<group>";
@@ -266,7 +261,6 @@
 			files = (
 				9320A85718AC12C800BBF1FB /* main.m in Sources */,
 				9320A86418AC12C800BBF1FB /* JSKViewController.m in Sources */,
-				9301575618C0F59F00270699 /* ILTranslucentView.m in Sources */,
 				9320A85B18AC12C800BBF1FB /* JSKAppDelegate.m in Sources */,
 				9320A88418AC13A000BBF1FB /* JSKCirculatoryView.m in Sources */,
 			);
