@@ -21,12 +21,10 @@ CGFloat const kPaddingXPhone = 50.0;
 CGFloat const kPaddingY = 5;
 CGFloat const kWallThickness = 1.0;
 CGFloat const kVesselDiameter = 3.0;
-CGFloat const kVesselOffset = 0.0;
 CGFloat const kVesselFlowSpeed = 0.1;
 CGFloat const kAnimationDuration = 2.0;
 
 @interface JSKCirculatoryView () {
-    NSUInteger _pulmonaryArteryPointCount;
     BOOL _isDrawing;
     UIColor *_oxygenatedColor;
     UIColor *_deoxygenatedColor;
@@ -34,7 +32,6 @@ CGFloat const kAnimationDuration = 2.0;
     UIColor *_lightDeoxygenatedColor;
     UIColor *_systemWallColor;
     UIColor *_systemFillColor;
-    NSMutableDictionary *_magicNumbers;
     CGSize _systemSize;
     CGSize _systemTwinSize;
     CGSize _bufferSize;
@@ -1305,7 +1302,7 @@ CGFloat const kAnimationDuration = 2.0;
             
         case JSKSystemPulmonaryArtery: {
             CGPoint t_heartPoint = [self originForSystem:JSKSystemHeart];
-            CGFloat t_delta = kVesselOffset;
+            CGFloat t_delta = 0.0;
             t_return = CGPointMake(t_heartPoint.x, t_heartPoint.y + t_delta);
             break;
         }
