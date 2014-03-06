@@ -25,12 +25,6 @@ CGFloat const kVesselOffset = 0.0;
 CGFloat const kVesselFlowSpeed = 0.1;
 CGFloat const kAnimationDuration = 2.0;
 
-CGFloat const kPhoneWidth = 320.0;
-CGFloat const kPhoneHeight = 480.0;
-CGFloat const kPhone5Height = 568.0;
-CGFloat const kPadWidth = 664.0;
-CGFloat const kPadHeight = 920.0;
-
 @interface JSKCirculatoryView () {
     NSUInteger _pulmonaryArteryPointCount;
     BOOL _isDrawing;
@@ -60,6 +54,7 @@ CGFloat const kPadHeight = 920.0;
 - (void)addArteryAnimation:(JSKSystem)system;
 - (void)addVeinAnimation:(JSKSystem)system;
 - (JSKSystemType)determineSystemType:(JSKSystem)system;
+- (BOOL)isPad;
 
 @end
 
@@ -75,7 +70,7 @@ CGFloat const kPadHeight = 920.0;
         _systemTwinSize = CGSizeMake([self systemTwinWidth], kSystemHeight);
         _paddingX = kPaddingX;
         
-        if (frame.size.width <= kPhoneWidth) {
+        if (![self isPad]) {
             _bufferSize = CGSizeMake(kBufferPhone, kBufferPhone);
             _systemSize = CGSizeMake(kSystemWidthPhone, kSystemHeightPhone);
             _systemTwinSize = CGSizeMake([self systemTwinWidth], kSystemHeightPhone);
@@ -401,7 +396,7 @@ CGFloat const kPadHeight = 920.0;
         [t_attributed addAttribute:NSFontAttributeName
                       value:[UIFont fontWithName:@"Gill Sans" size:14]
                       range:t_range];
-        if (self.bounds.size.width <= kPhoneWidth)
+        if (![self isPad])
             [t_attributed addAttribute:NSFontAttributeName
                                  value:[UIFont fontWithName:@"Gill Sans" size:10]
                                  range:t_range];
@@ -439,9 +434,6 @@ CGFloat const kPadHeight = 920.0;
                 t_offset.height = (t_attributed.size.height + 4) * -1;
                 break;
             case JSKSystemSuperiorVenaCava: {
-//                NSMutableParagraphStyle *t_style = [[NSMutableParagraphStyle alloc] init];
-//                t_style.alignment = NSTextAlignmentRight;
-//                [t_attributed addAttribute:NSParagraphStyleAttributeName value:t_style range:t_range];
                 CGPoint t_refPoint = [self originForSystem:JSKSystemHeart];
                 t_offset.width = (t_attributed.size.width + 8) * -1;
                 t_origin.y = t_refPoint.y - 4;
@@ -598,13 +590,6 @@ CGFloat const kPadHeight = 920.0;
             t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_lastPoint = t_point;
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
-            
-//            t_delta = _bufferSize.height + kVesselDiameter;
-//            CGPoint t_refPoint = [self originForSystem:JSKSystemRightLung];
-//            t_point = CGPointMake(t_refPoint.x + _systemTwinSize.width, t_refPoint.y + _systemTwinSize.height + t_delta);
-//            [t_path moveToPoint:CGPointMake(t_point.x, t_point.y - t_delta)];
-//            [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
-//            t_lastPoint = t_point;
             
             t_return = t_path;
             break;
@@ -1144,51 +1129,26 @@ CGFloat const kPadHeight = 920.0;
 {
     CAShapeLayer *t_return = nil;
     
-    switch (system) {
-            
-        case JSKSystemHeart: {
-            UIBezierPath *t_path = [self pathForSystem:system];
-            t_return = ({
-                CAShapeLayer *t_layer = [CAShapeLayer layer];
-                t_layer.lineWidth = t_path.lineWidth;
-                t_layer.path = t_path.CGPath;
-                t_layer;
-            });
-            break;
-        }
-            
-        case JSKSystemAorta:
-        case JSKSystemCarotidArteries:
-        case JSKSystemCeliacArtery:
-        case JSKSystemGonadalArteries:
-        case JSKSystemHepaticArtery:
-        case JSKSystemIliacArtieries:
-        case JSKSystemPulmonaryArtery:
-        case JSKSystemRenalArteries:
-        case JSKSystemSubclavianArteries:
-        case JSKSystemGonadalVeins:
-        case JSKSystemHepaticPortalVein:
-        case JSKSystemHepaticVeins:
-        case JSKSystemIliacVeins:
-        case JSKSystemInferiorVenaCava:
-        case JSKSystemJugularVeins:
-        case JSKSystemPulmonaryVein:
-        case JSKSystemRenalVeins:
-        case JSKSystemSubclavianVeins:
-        case JSKSystemSuperiorVenaCava: {
-            UIBezierPath *t_path = [self pathForSystem:system];
-            t_return = ({
-                CAShapeLayer *t_layer = [CAShapeLayer layer];
-                t_layer.lineWidth = t_path.lineWidth;
-                t_layer.fillColor = [UIColor clearColor].CGColor;
-                t_layer.path = t_path.CGPath;
-                t_layer;
-            });
-            break;
-        }
-        
-        case JSKSystem_MaxValue:
-            break;
+    JSKSystemType t_type = [self determineSystemType:system];
+    
+    if (system == JSKSystemHeart) {
+        UIBezierPath *t_path = [self pathForSystem:system];
+        t_return = ({
+            CAShapeLayer *t_layer = [CAShapeLayer layer];
+            t_layer.lineWidth = t_path.lineWidth;
+            t_layer.path = t_path.CGPath;
+            t_layer;
+        });
+    }
+    else if (t_type == JSKSystemTypeArtery || t_type == JSKSystemTypeVein) {
+        UIBezierPath *t_path = [self pathForSystem:system];
+        t_return = ({
+            CAShapeLayer *t_layer = [CAShapeLayer layer];
+            t_layer.lineWidth = t_path.lineWidth;
+            t_layer.fillColor = [UIColor clearColor].CGColor;
+            t_layer.path = t_path.CGPath;
+            t_layer;
+        });
     }
     
     return t_return;
@@ -1207,11 +1167,11 @@ CGFloat const kPadHeight = 920.0;
             break;
             
         case JSKSystemLeftLung:
-            t_return = NSLocalizedString(@"Left Lung", @"Left Lung");
+            t_return = NSLocalizedString(@"Lung", @"Left Lung");
             break;
             
         case JSKSystemRightLung:
-            t_return = NSLocalizedString(@"Right Lung", @"Right Lung");
+            t_return = NSLocalizedString(@"Lung", @"Right Lung");
             break;
             
         case JSKSystemPulmonaryVein:
@@ -1243,11 +1203,11 @@ CGFloat const kPadHeight = 920.0;
             break;
             
         case JSKSystemRightArm:
-            t_return = NSLocalizedString(@"Right Arm", @"Right Arm");
+            t_return = NSLocalizedString(@"Arm", @"Right Arm");
             break;
             
         case JSKSystemLeftArm:
-            t_return = NSLocalizedString(@"Left Arm", @"Left Arm");
+            t_return = NSLocalizedString(@"Arm", @"Left Arm");
             break;
             
         case JSKSystemSubclavianVeins:
@@ -1287,11 +1247,11 @@ CGFloat const kPadHeight = 920.0;
             break;
             
         case JSKSystemRightKidney:
-            t_return = NSLocalizedString(@"Right Kidney", @"Right Kidney");
+            t_return = NSLocalizedString(@"Kidney", @"Right Kidney");
             break;
             
         case JSKSystemLeftKidney:
-            t_return = NSLocalizedString(@"Left Kidney", @"Left Kidney");
+            t_return = NSLocalizedString(@"Kidney", @"Left Kidney");
             break;
             
         case JSKSystemRenalVeins:
@@ -1315,11 +1275,11 @@ CGFloat const kPadHeight = 920.0;
             break;
             
         case JSKSystemRightLeg:
-            t_return = NSLocalizedString(@"Right Leg", @"Right Leg");
+            t_return = NSLocalizedString(@"Leg", @"Right Leg");
             break;
             
         case JSKSystemLeftLeg:
-            t_return = NSLocalizedString(@"Left Leg", @"Left Leg");
+            t_return = NSLocalizedString(@"Leg", @"Left Leg");
             break;
             
         case JSKSystemIliacVeins:
@@ -1549,6 +1509,14 @@ CGFloat const kPadHeight = 920.0;
 - (CGFloat)systemTwinOriginX
 {
     return [self systemOriginX] + [self systemTwinWidth] + _bufferSize.width;
+}
+
+- (BOOL)isPad {
+#ifdef UI_USER_INTERFACE_IDIOM
+    return (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);
+#else
+    return NO;
+#endif
 }
 
 @end
