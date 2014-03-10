@@ -28,6 +28,7 @@ typedef enum {
     UIButton *_startButton;
     UIView *_menuView;
     UIView *_translucentView;
+    UIView *_aboutView;
 }
 
 - (void)animateForLoad;
@@ -79,6 +80,17 @@ typedef enum {
     _translucentView = ({
         UIView *t_view = [[UIView alloc] initWithFrame:_framingView.bounds];
         t_view.backgroundColor = [UIColor grayColor];
+        t_view.alpha = 0.0;
+        [_framingView addSubview:t_view];
+        t_view;
+    });
+    
+    _aboutView = ({
+        UIView *t_view = [[UIView alloc] initWithFrame:_framingView.bounds];
+        t_view.backgroundColor = [UIColor lightGrayColor];
+        t_view.layer.borderWidth = 1.0;
+        t_view.layer.cornerRadius = 10.0;
+        t_view.clipsToBounds = YES;
         t_view.alpha = 0.0;
         [_framingView addSubview:t_view];
         t_view;
@@ -176,7 +188,10 @@ typedef enum {
 - (void)startButtonTapped:(id)sender
 {
     [UIView animateWithDuration:0.5 animations:^{
-        if (_menuView.alpha == 0.0) {
+        if (_aboutView.alpha == 1.0) {
+            _aboutView.alpha = 0.0;
+        }
+        else if (_menuView.alpha == 0.0) {
             _menuView.alpha = 1.0;
             _translucentView.alpha = 0.8;
         }
@@ -193,8 +208,6 @@ typedef enum {
     
     switch (t_type) {
         case JSKMenuButtonAbout:
-            
-            break;
         case JSKMenuButtonLabels:
             break;
         case JSKMenuButtonAnimate:
@@ -207,11 +220,17 @@ typedef enum {
             break;
     }
     
-    [UIView animateWithDuration:0.5 animations:^{
+    [UIView animateWithDuration:0.2 animations:^ {
         _menuView.alpha = 0.0;
         _translucentView.alpha = 0.0;
-        if (t_type == JSKMenuButtonLabels)
-            _circulatoryView.labelsHidden = !_circulatoryView.labelsHidden;
+        
+    } completion:^(BOOL finished){
+        [UIView animateWithDuration:0.5 animations:^{
+            if (t_type == JSKMenuButtonLabels)
+                _circulatoryView.labelsHidden = !_circulatoryView.labelsHidden;
+            else if (t_type == JSKMenuButtonAbout)
+                _aboutView.alpha = 1.0;
+        }];
     }];
 }
 

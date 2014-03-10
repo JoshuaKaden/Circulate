@@ -7,6 +7,7 @@
 //
 
 #import "JSKCirculatoryView.h"
+#import <CoreText/CoreText.h>
 
 CGFloat const kBuffer = 22.0;
 CGFloat const kSystemHeight = 60.0;
@@ -37,6 +38,8 @@ CGFloat const kAnimationDuration = 2.0;
     CGSize _bufferSize;
     CGFloat _paddingX;
     CALayer *_floorLayer;
+    CALayer *_systemLayer;
+    UIView *_labelView;
 }
 
 - (void)drawRect:(CGRect)rect system:(JSKSystem)system;
@@ -105,7 +108,10 @@ CGFloat const kAnimationDuration = 2.0;
 - (void)setLabelsHidden:(BOOL)labelsHidden
 {
     _labelsHidden = labelsHidden;
-    [self setNeedsDisplay];
+    if (labelsHidden)
+        _labelView.alpha = 0.0;
+    else
+        _labelView.alpha = 1.0;
 }
 
 #pragma mark - Public Methods
@@ -196,6 +202,7 @@ CGFloat const kAnimationDuration = 2.0;
 
 - (void)drawRect:(CGRect)rect system:(JSKSystem)system
 {
+    CALayer *t_targetLayer = nil;
     UIColor *t_borderColor = nil;
     UIColor *t_fillColor = nil;
     JSKSystemType t_type = [self determineSystemType:system];
@@ -216,6 +223,7 @@ CGFloat const kAnimationDuration = 2.0;
             break;
             
         case JSKSystemTypeSystem:
+            t_targetLayer = _systemLayer;
             t_borderColor = _systemWallColor;
             t_fillColor = _systemFillColor;
             break;
@@ -374,8 +382,17 @@ CGFloat const kAnimationDuration = 2.0;
 
 - (void)drawLabels:(CGRect)rect
 {
-    if (_labelsHidden)
+    if (_labelView)
         return;
+    
+    _labelView = ({
+        UIView *t_view = [[UIView alloc] initWithFrame:self.bounds];
+        t_view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self addSubview:t_view];
+        t_view;
+    });
+    
+    CALayer *t_labelLayer = [CALayer layer];
     
     for (JSKSystem t_system = 0; t_system < JSKSystem_MaxValue; t_system++) {
         NSString *t_string = [self titleForSystem:t_system];
@@ -388,17 +405,23 @@ CGFloat const kAnimationDuration = 2.0;
         if (t_system == JSKSystemGonadalArteries || t_system == JSKSystemGonadalVeins)
             t_string = @"";
         
-        NSMutableAttributedString *t_attributed = [[NSMutableAttributedString alloc] initWithString:t_string];
-        NSRange t_range = NSMakeRange(0, t_string.length);
-        [t_attributed addAttribute:NSFontAttributeName
-                      value:[UIFont fontWithName:@"Gill Sans" size:14]
-                      range:t_range];
-        if (![self isPad])
-            [t_attributed addAttribute:NSFontAttributeName
-                                 value:[UIFont fontWithName:@"Gill Sans" size:10]
-                                 range:t_range];
-
-        [t_attributed addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:t_range];
+        CTFontRef fontFace = CTFontCreateWithName((__bridge CFStringRef)(@"GillSans"), 14.0, NULL);
+        NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
+        [attributes setObject:(__bridge id)fontFace forKey:(NSString*)kCTFontAttributeName];
+        [attributes setObject:(__bridge id)[UIColor whiteColor].CGColor forKey:(NSString*)kCTForegroundColorAttributeName];
+        NSAttributedString *t_attributed = [[NSAttributedString alloc] initWithString:t_string attributes:attributes];
+        
+//        NSMutableAttributedString *t_attributed = [[NSMutableAttributedString alloc] initWithString:t_string];
+//        NSRange t_range = NSMakeRange(0, t_string.length);
+//        [t_attributed addAttribute:NSFontAttributeName
+//                      value:[UIFont fontWithName:@"Gill Sans" size:14]
+//                      range:t_range];
+//        if (![self isPad])
+//            [t_attributed addAttribute:NSFontAttributeName
+//                                 value:[UIFont fontWithName:@"Gill Sans" size:10]
+//                                 range:t_range];
+//
+//        [t_attributed addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:t_range];
         
         CGSize t_offset = CGSizeMake(4,2);
         switch (t_system) {
@@ -471,8 +494,18 @@ CGFloat const kAnimationDuration = 2.0;
                 break;
         }
         
-        [t_attributed drawAtPoint:CGPointMake(t_origin.x + t_offset.width, t_origin.y + t_offset.height)];
+        CATextLayer *t_layer = [CATextLayer layer];
+        CGRect t_frame = [t_attributed boundingRectWithSize:CGSizeMake(t_labelLayer.bounds.size.width, t_labelLayer.bounds.size.height) options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading context:nil];
+        t_frame.origin = CGPointMake(t_origin.x + t_offset.width, t_origin.y + t_offset.height);
+        t_layer.frame = t_frame;
+        t_layer.string = t_attributed;
+        
+        [t_labelLayer addSublayer:t_layer];
+        
+//        [t_attributed drawAtPoint:CGPointMake(t_origin.x + t_offset.width, t_origin.y + t_offset.height)];
     }
+    
+    [_labelView.layer addSublayer:t_labelLayer];
 }
 
 - (UIBezierPath *)pathForSystem:(JSKSystem)system
