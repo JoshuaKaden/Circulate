@@ -38,7 +38,7 @@ CGFloat const kAnimationDuration = 2.0;
     CGSize _bufferSize;
     CGFloat _paddingX;
     CALayer *_floorLayer;
-    CALayer *_systemLayer;
+    UIView *_systemView;
     UIView *_labelView;
 }
 
@@ -83,6 +83,13 @@ CGFloat const kAnimationDuration = 2.0;
         _lightDeoxygenatedColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.9 alpha:0.9];
         _systemWallColor = [UIColor lightGrayColor];
         _systemFillColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.5];
+        
+        _systemView = ({
+            UIView *t_view = [[UIView alloc] initWithFrame:self.bounds];
+            t_view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            [self addSubview:t_view];
+            t_view;
+        });
     }
     return self;
 }
@@ -108,10 +115,12 @@ CGFloat const kAnimationDuration = 2.0;
 - (void)setLabelsHidden:(BOOL)labelsHidden
 {
     _labelsHidden = labelsHidden;
-    if (labelsHidden)
+    if (labelsHidden) {
         _labelView.alpha = 0.0;
-    else
+    }
+    else {
         _labelView.alpha = 1.0;
+    }
 }
 
 #pragma mark - Public Methods
@@ -188,6 +197,8 @@ CGFloat const kAnimationDuration = 2.0;
                 break;
         }
     }
+    
+    [self bringSubviewToFront:_systemView];
 }
 
 - (void)stopAnimating
@@ -202,9 +213,10 @@ CGFloat const kAnimationDuration = 2.0;
 
 - (void)drawRect:(CGRect)rect system:(JSKSystem)system
 {
-    CALayer *t_targetLayer = nil;
     UIColor *t_borderColor = nil;
     UIColor *t_fillColor = nil;
+    UIView *t_targetView = nil;
+    
     JSKSystemType t_type = [self determineSystemType:system];
     switch (t_type) {
             
@@ -218,14 +230,14 @@ CGFloat const kAnimationDuration = 2.0;
         case JSKSystemTypeVein:
             t_borderColor = _deoxygenatedColor;
             t_fillColor = [UIColor clearColor];
-            if (system == JSKSystemPulmonaryVein)
+            if (system == JSKSystemPulmonaryVein || system == JSKSystemHepaticPortalVein)
                 t_borderColor = _oxygenatedColor;
             break;
             
         case JSKSystemTypeSystem:
-            t_targetLayer = _systemLayer;
             t_borderColor = _systemWallColor;
             t_fillColor = _systemFillColor;
+            t_targetView = _systemView;
             break;
             
         case JSKSystemType_MaxValue:
@@ -239,10 +251,21 @@ CGFloat const kAnimationDuration = 2.0;
     if (!t_path)
         return;
     
-    [t_fillColor setFill];
-    [t_borderColor setStroke];
-    [t_path fill];
-    [t_path stroke];
+    if (t_targetView) {
+        CAShapeLayer *t_layer = [CAShapeLayer layer];
+        t_layer.path = t_path.CGPath;
+        t_layer.strokeColor = t_borderColor.CGColor;
+        t_layer.fillColor = t_fillColor.CGColor;
+        [t_targetView.layer addSublayer:t_layer];
+    }
+    else {
+        [t_fillColor setFill];
+        [t_borderColor setStroke];
+        [t_path fill];
+        [t_path stroke];
+    }
+    
+    [self bringSubviewToFront:_systemView];
 }
 
 - (JSKSystemType)determineSystemType:(JSKSystem)system
@@ -347,7 +370,7 @@ CGFloat const kAnimationDuration = 2.0;
     UIColor *t_color1 = _lightDeoxygenatedColor;
     UIColor *t_color2 = _deoxygenatedColor;
     
-    if (system == JSKSystemPulmonaryVein) {
+    if (system == JSKSystemPulmonaryVein || system == JSKSystemHepaticPortalVein) {
         t_color1 = _lightOxygenatedColor;
         t_color2 = _oxygenatedColor;
     }
@@ -411,18 +434,6 @@ CGFloat const kAnimationDuration = 2.0;
         [attributes setObject:(__bridge id)[UIColor whiteColor].CGColor forKey:(NSString*)kCTForegroundColorAttributeName];
         NSAttributedString *t_attributed = [[NSAttributedString alloc] initWithString:t_string attributes:attributes];
         
-//        NSMutableAttributedString *t_attributed = [[NSMutableAttributedString alloc] initWithString:t_string];
-//        NSRange t_range = NSMakeRange(0, t_string.length);
-//        [t_attributed addAttribute:NSFontAttributeName
-//                      value:[UIFont fontWithName:@"Gill Sans" size:14]
-//                      range:t_range];
-//        if (![self isPad])
-//            [t_attributed addAttribute:NSFontAttributeName
-//                                 value:[UIFont fontWithName:@"Gill Sans" size:10]
-//                                 range:t_range];
-//
-//        [t_attributed addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:t_range];
-        
         CGSize t_offset = CGSizeMake(4,2);
         switch (t_system) {
             case JSKSystemAorta: {
@@ -450,7 +461,7 @@ CGFloat const kAnimationDuration = 2.0;
                 t_offset.height = -10;
                 break;
             case JSKSystemHepaticArtery:
-                t_offset.width = t_attributed.size.width * -1;
+                t_offset.width = (t_attributed.size.width * -1) - 30;
                 t_offset.height = (t_attributed.size.height + 4) * -1;
                 break;
             case JSKSystemSuperiorVenaCava: {
@@ -495,14 +506,13 @@ CGFloat const kAnimationDuration = 2.0;
         }
         
         CATextLayer *t_layer = [CATextLayer layer];
+        t_layer.contentsScale = [[UIScreen mainScreen] scale];
         CGRect t_frame = [t_attributed boundingRectWithSize:CGSizeMake(t_labelLayer.bounds.size.width, t_labelLayer.bounds.size.height) options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading context:nil];
         t_frame.origin = CGPointMake(t_origin.x + t_offset.width, t_origin.y + t_offset.height);
         t_layer.frame = t_frame;
         t_layer.string = t_attributed;
         
         [t_labelLayer addSublayer:t_layer];
-        
-//        [t_attributed drawAtPoint:CGPointMake(t_origin.x + t_offset.width, t_origin.y + t_offset.height)];
     }
     
     [_labelView.layer addSublayer:t_labelLayer];
@@ -641,7 +651,7 @@ CGFloat const kAnimationDuration = 2.0;
             
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
             t_refPoint.x += (_systemSize.width + kVesselDiameter + _bufferSize.width);
-            t_refPoint.y += (_systemSize.height);
+            t_refPoint.y += (_systemSize.height + (kVesselDiameter / 2.0) - kVesselDiameter);
             CGFloat t_minY = t_refPoint.y;
             CGFloat t_maxY = [self originForSystem:JSKSystemIliacArtieries].y + (kVesselDiameter / 2.0);
             t_delta = t_maxY - t_origin.y;
@@ -665,7 +675,7 @@ CGFloat const kAnimationDuration = 2.0;
             t_path.lineWidth = t_borderWidth;
             [t_path moveToPoint:CGPointMake(t_origin.x, t_origin.y)];
             
-            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width) + (kVesselDiameter / 2.0);
+            CGFloat t_delta = ((kVesselDiameter / 2.0) + _bufferSize.width + _bufferSize.width);
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
             
@@ -734,7 +744,7 @@ CGFloat const kAnimationDuration = 2.0;
             t_path.lineWidth = t_borderWidth;
             [t_path moveToPoint:CGPointMake(t_origin.x, t_origin.y)];
             
-            CGFloat t_delta = (kVesselDiameter + _bufferSize.width + _bufferSize.width);
+            CGFloat t_delta = ((kVesselDiameter / 2.0) + _bufferSize.width + _bufferSize.width);
             CGPoint t_point = CGPointMake(t_lastPoint.x - t_delta, t_lastPoint.y);
             t_lastPoint = t_point;
             [t_path addLineToPoint:CGPointMake(t_point.x, t_point.y)];
@@ -1367,7 +1377,7 @@ CGFloat const kAnimationDuration = 2.0;
         
         case JSKSystemCarotidArteries: {
             CGPoint t_refPoint = [self originForSystem:JSKSystemHead];
-            t_return = CGPointMake(t_refPoint.x + _systemSize.width + (kVesselDiameter / 2.0) + (kVesselDiameter + _bufferSize.width + _bufferSize.width), t_refPoint.y + _systemSize.height);
+            t_return = CGPointMake(t_refPoint.x + _systemSize.width + (kVesselDiameter / 2.0) + (_bufferSize.width + _bufferSize.width), t_refPoint.y + _systemSize.height);
             break;
         }
     
