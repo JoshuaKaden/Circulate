@@ -428,7 +428,14 @@ CGFloat const kAnimationDuration = 2.0;
         if (t_system == JSKSystemGonadalArteries || t_system == JSKSystemGonadalVeins)
             t_string = @"";
         
-        CTFontRef fontFace = CTFontCreateWithName((__bridge CFStringRef)(@"GillSans"), 14.0, NULL);
+        NSString *t_fontName = @"GillSans";
+        CGFloat t_fontSize = 14.0;
+//        if ([self determineSystemType:t_system] == JSKSystemTypeSystem) {
+//            t_fontName = @"Cochin-Italic";
+//            t_fontSize = 28.0;
+//        }
+        
+        CTFontRef fontFace = CTFontCreateWithName((__bridge CFStringRef)(t_fontName), t_fontSize, NULL);
         NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
         [attributes setObject:(__bridge id)fontFace forKey:(NSString*)kCTFontAttributeName];
         [attributes setObject:(__bridge id)[UIColor whiteColor].CGColor forKey:(NSString*)kCTForegroundColorAttributeName];
@@ -507,7 +514,7 @@ CGFloat const kAnimationDuration = 2.0;
         
         CATextLayer *t_layer = [CATextLayer layer];
         t_layer.contentsScale = [[UIScreen mainScreen] scale];
-        CGRect t_frame = [t_attributed boundingRectWithSize:CGSizeMake(t_labelLayer.bounds.size.width, t_labelLayer.bounds.size.height) options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading context:nil];
+        CGRect t_frame = [t_attributed boundingRectWithSize:CGSizeMake(_labelView.bounds.size.width, _labelView.bounds.size.height) options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading context:nil];
         t_frame.origin = CGPointMake(t_origin.x + t_offset.width, t_origin.y + t_offset.height);
         t_layer.frame = t_frame;
         t_layer.string = t_attributed;
